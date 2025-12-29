@@ -1,0 +1,518 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Wisdom - Minh Triết Năng Lượng (Updated Data)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --gold: #d4af37;
+            --text-main: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: 
+                linear-gradient(to bottom, rgba(18, 18, 18, 0.95), rgba(18, 18, 18, 0.98)),
+                url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        .serif-font { font-family: 'Playfair Display', serif; }
+
+        /* Glass Panel */
+        .glass {
+            background: rgba(30, 30, 36, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .input-custom {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: 0.3s;
+            color: white;
+        }
+        .input-custom:focus {
+            border-color: var(--gold);
+            outline: none;
+        }
+
+        /* Buttons */
+        .btn-gold {
+            background: linear-gradient(135deg, #d4af37, #f3e5ab, #b48811);
+            color: #000;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3); }
+
+        .btn-outline {
+            border: 1px solid var(--gold);
+            color: var(--gold);
+        }
+        .btn-outline:hover { background: var(--gold); color: #000; }
+        
+        /* Typography highlighting */
+        .highlight { color: #d4af37; font-weight: 600; }
+        .list-dot li { margin-bottom: 6px; position: relative; padding-left: 15px; }
+        .list-dot li::before { content: "•"; color: #d4af37; position: absolute; left: 0; }
+        
+        /* Loading Overlay */
+        #loadingOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 9999;
+            display: none; align-items: center; justify-content: center;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center p-4">
+
+    <!-- Loading -->
+    <div id="loadingOverlay">
+        <i class="fas fa-circle-notch fa-spin text-4xl text-[#d4af37]"></i>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="appScreen" class="w-full max-w-5xl pb-10 mt-10">
+        
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 glass p-6 rounded-2xl border-t border-[#d4af37]/30">
+            <div class="flex items-center gap-4 mb-4 md:mb-0">
+                <i class="fas fa-sun text-3xl text-[#d4af37] animate-pulse"></i>
+                <div>
+                    <h2 class="text-xl font-bold text-white serif-font">Báo Cáo Năng Lượng</h2>
+                    <p class="text-xs text-gray-400 uppercase tracking-widest">Dữ liệu cập nhật mới nhất</p>
+                </div>
+            </div>
+            <div class="flex gap-4 items-center">
+                <button onclick="location.reload()" class="text-gray-400 hover:text-white px-3" title="Làm mới">
+                    <i class="fas fa-sync-alt"></i> Reset
+                </button>
+            </div>
+        </header>
+
+        <!-- Input Area -->
+        <div class="glass p-8 rounded-2xl mb-8 flex flex-col items-center justify-center">
+            <h3 class="text-[#d4af37] text-sm uppercase tracking-[0.2em] mb-6 border-b border-[#d4af37]/30 pb-2">Nhập Thông Tin Phân Tích</h3>
+            
+            <div class="w-full max-w-md space-y-5">
+                <!-- Nhập Họ Tên -->
+                <div class="text-left">
+                    <label class="text-gray-400 text-xs uppercase ml-1 mb-1 block">Họ và Tên</label>
+                    <input type="text" id="fullName" 
+                        class="input-custom w-full rounded-lg py-3 px-4 text-white placeholder-gray-600 focus:border-[#d4af37] transition" 
+                        placeholder="Ví dụ: Nguyễn Văn A">
+                </div>
+
+                <!-- Nhập Dữ Liệu: NGÀY SINH + THÁNG XEM + NĂM XEM -->
+                <div class="text-left">
+                    <label class="text-gray-400 text-xs uppercase ml-1 mb-1 block">Thông tin Năng Lượng</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <!-- Chọn Ngày Sinh -->
+                        <div class="relative">
+                            <label class="text-[10px] text-[#d4af37] block mb-1 text-center">Ngày Sinh</label>
+                            <select id="dobDay" class="input-custom w-full rounded-lg py-2 px-2 text-white focus:border-[#d4af37] transition appearance-none cursor-pointer text-center bg-[#121212]">
+                                <option value="" disabled selected>Ngày</option>
+                                <!-- JS fills 1-31 -->
+                            </select>
+                        </div>
+
+                        <!-- Chọn Tháng Xem -->
+                        <div class="relative">
+                            <label class="text-[10px] text-[#d4af37] block mb-1 text-center">Tháng Xem</label>
+                            <select id="viewMonth" class="input-custom w-full rounded-lg py-2 px-2 text-white focus:border-[#d4af37] transition appearance-none cursor-pointer text-center bg-[#121212]">
+                                <option value="" disabled selected>Tháng</option>
+                                <!-- JS fills 1-12 -->
+                            </select>
+                        </div>
+
+                        <!-- Nhập Năm Xem -->
+                        <div class="relative">
+                            <label class="text-[10px] text-[#d4af37] block mb-1 text-center">Năm Xem</label>
+                            <input type="number" id="viewYear" placeholder="Năm" 
+                                class="input-custom w-full rounded-lg py-2 px-2 text-white focus:border-[#d4af37] transition text-center placeholder-gray-600">
+                        </div>
+                    </div>
+                    <p class="text-gray-500 text-[10px] mt-2 italic text-center">* Hệ thống sử dụng Ngày Sinh của bạn kết hợp với Tháng/Năm hiện tại để dự báo.</p>
+                </div>
+
+                <!-- Nút Tra Cứu -->
+                <button onclick="calculateMatrix()" 
+                    class="btn-gold w-full py-3 rounded-lg uppercase tracking-wider font-bold shadow-lg hover:shadow-[#d4af37]/40 mt-4">
+                    <i class="fas fa-fingerprint mr-2"></i> Giải Mã Ngay
+                </button>
+            </div>
+        </div>
+
+        <!-- REPORT CONTENT -->
+        <div id="printArea" class="glass p-10 rounded-2xl min-h-[800px]">
+            <div class="relative z-10">
+                <!-- Title Section -->
+                <div class="text-center mb-12 border-b border-gray-800 pb-8">
+                    <h1 class="text-4xl md:text-5xl font-bold text-[#d4af37] serif-font mb-3">Thông Điệp Định Mệnh</h1>
+                    <p id="reportDate" class="text-gray-400 font-light text-lg">...</p>
+                    <div id="dailyVibe" class="mt-6 hidden bg-white/5 inline-block px-6 py-3 rounded-lg border border-white/10">
+                        <p class="text-lg text-white italic serif-font">" <span id="vibeText"></span> "</p>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="welcomeMessage" class="text-center py-20 opacity-40">
+                    <i class="fas fa-compass text-6xl mb-4"></i>
+                    <p class="text-xl font-light">Hãy nhập thông tin để xem dự báo.</p>
+                </div>
+
+                <!-- Results Grid -->
+                <div id="resultContainer" class="hidden grid grid-cols-1 gap-6">
+                    <!-- Cards injected via JS -->
+                </div>
+
+                <!-- Footer -->
+                <div id="footerSignature" class="hidden mt-16 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="text-center md:text-left">
+                        <p class="text-[#d4af37] font-bold text-lg serif-font">Matrix Wisdom System</p>
+                        <p class="text-gray-600 text-xs uppercase tracking-wider">Báo cáo năng lượng cá nhân</p>
+                    </div>
+                    <div class="text-xs text-gray-600">
+                        © 2025 by Heart Sun 
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const currentDate = new Date();
+
+        // 1. INIT DATE DROPDOWNS
+        function populateDropdowns() {
+            const daySelect = document.getElementById('dobDay');
+            const monthSelect = document.getElementById('viewMonth');
+            const yearInput = document.getElementById('viewYear');
+
+            // Ngày 1-31
+            for (let i = 1; i <= 31; i++) {
+                let option = document.createElement('option');
+                option.value = i < 10 ? '0' + i : i;
+                option.text = i;
+                daySelect.appendChild(option);
+            }
+
+            // Tháng 1-12
+            for (let i = 1; i <= 12; i++) {
+                let option = document.createElement('option');
+                option.value = i < 10 ? '0' + i : i;
+                option.text = "Tháng " + i;
+                if (i === currentDate.getMonth() + 1) option.selected = true; // Default to current month
+                monthSelect.appendChild(option);
+            }
+
+            // Default Year
+            yearInput.value = currentDate.getFullYear();
+        }
+
+        // 2. MAIN CALCULATION
+        function calculateMatrix() {
+            const nameInput = document.getElementById('fullName').value.trim();
+            const d = document.getElementById('dobDay').value;
+            const m = document.getElementById('viewMonth').value;
+            const y = document.getElementById('viewYear').value;
+
+            if (!nameInput || !d || !m || !y) {
+                alert("Vui lòng nhập đầy đủ thông tin!");
+                return;
+            }
+
+            // Hiển thị Header
+            document.getElementById('reportDate').innerHTML = `
+                <span class="block text-2xl text-white font-bold mb-2 uppercase tracking-wide">${nameInput}</span>
+                <span class="text-sm">Chu kỳ phân tích: Tháng <b class="text-[#d4af37]">${m}/${y}</b> (Dựa trên ngày sinh ${d})</span>
+            `;
+
+            document.getElementById('welcomeMessage').classList.add('hidden');
+            document.getElementById('resultContainer').classList.remove('hidden');
+            document.getElementById('footerSignature').classList.remove('hidden');
+            document.getElementById('dailyVibe').classList.remove('hidden');
+
+            // --- MATRIX CALCULATION LOGIC ---
+            // Input: Ngày Sinh (d) + Tháng Xem (m) + Năm Xem (y)
+            const day = parseInt(d);
+            const raw = `${d}${m}${y}`; // Chuỗi gốc để tính ma trận
+            
+            // Tính các chỉ số phụ (n1, n2, n3, n4) theo quy tắc ma trận thông thường
+            let n1 = raw.split('').reduce((a,b)=>a+parseInt(b),0); // Tổng các số
+            let n2 = n1.toString().split('').reduce((a,b)=>a+parseInt(b),0); // Tổng của n1
+            let firstDigitDay = d < 10 ? 0 : Math.floor(parseInt(d)/10); // Lưu ý: Logic gốc thường lấy số đầu ngày sinh
+             // Nếu d < 10, số đầu là 0 hoặc chính nó? Trong Pyth, 5 -> 05 -> 0. 15 -> 1.
+             // Tuy nhiên logic tính n3 thường là: n1 - 2 * (số đầu tiên khác 0 của ngày sinh hoặc số đầu tiên của chuỗi).
+             // Ở đây giữ logic phổ biến: n1 - 2 * (chữ số đầu tiên của ngày sinh). Nếu ngày < 10, chữ số đầu là 0 (nếu format 0X) hoặc chính nó.
+             // Để an toàn theo logic prompt trước:
+            let digitToSubtract = parseInt(d.toString().charAt(0)); 
+            let n3 = n1 - (2 * digitToSubtract);
+            let n4 = Math.abs(n3).toString().split('').reduce((a,b)=>a+parseInt(b),0);
+
+            // Tạo chuỗi tổng hợp để đếm số lượng các con số
+            let allStr = raw + n1 + n2 + n3 + n4;
+            let counts = {};
+            for(let char of allStr) counts[char] = (counts[char]||0)+1;
+
+            // Random Vibe
+            const vibes = [
+                "Cần bước ra ngoài gặp gỡ, tìm kiếm trải nghiệm.",
+                "Đừng ngồi yên trong nhà chỉ để coi tiktok.",
+                "Hãy cho phép bản thân được sai lầm.",
+                "Chăm sóc, yêu thương bản thân.",
+                "Tập trung phục vụ mọi người."
+            ];
+            document.getElementById('vibeText').innerText = vibes[Math.floor(Math.random() * vibes.length)];
+
+            renderCards(counts);
+        }
+
+        // 3. RENDER CARDS (UPDATED LOGIC)
+        function renderCards(counts) {
+            const container = document.getElementById('resultContainer');
+            container.innerHTML = '';
+
+            const addCard = (title, content, type = 'default') => {
+                let theme = {
+                    'water': { bg: 'from-blue-900/40 to-slate-900/40', border: 'border-blue-500/50', icon: 'fa-water' },
+                    'fire': { bg: 'from-red-900/30 to-orange-900/30', border: 'border-red-500/50', icon: 'fa-fire' },
+                    'wood': { bg: 'from-green-900/30 to-emerald-900/30', border: 'border-green-500/50', icon: 'fa-tree' },
+                    'metal': { bg: 'from-gray-800/50 to-gray-900/50', border: 'border-[#d4af37]/50', icon: 'fa-gem' },
+                    'earth': { bg: 'from-amber-900/30 to-yellow-900/30', border: 'border-yellow-500/50', icon: 'fa-mountain' },
+                    'warning': { bg: 'from-red-950 to-black', border: 'border-red-600', icon: 'fa-exclamation-triangle' }
+                }[type] || { bg: 'from-gray-800 to-gray-900', border: 'border-gray-500', icon: 'fa-star' };
+
+                container.innerHTML += `
+                <div class="bg-gradient-to-r ${theme.bg} border-l-4 ${theme.border} p-6 md:p-8 rounded-r-xl shadow-lg relative break-inside-avoid mb-4 animate-fade-in-up">
+                    <div class="absolute right-6 top-6 opacity-10 text-5xl"><i class="fas ${theme.icon}"></i></div>
+                    <h3 class="text-2xl font-bold text-white mb-4 serif-font border-b border-white/10 pb-2">${title}</h3>
+                    <div class="text-gray-300 leading-relaxed text-sm md:text-base font-light space-y-3 text-justify">
+                        ${content}
+                    </div>
+                </div>`;
+            };
+
+            // --- LOGIC MỚI TỪ DỮ LIỆU ---
+
+            // SỐ 1
+            if ((counts['1'] || 0) >= 3) { // NHIỀU SỐ 1 (111...)
+                addCard("SỐ 1: KẾT NỐI VÀ TRẢI NGHIỆM (Nhiều số 1)", 
+                `<p>Bạn đang có quá nhiều năng lượng dồn nén.</p>
+                 <div class="mt-3 p-3 bg-white/5 rounded border border-white/10">
+                    <p class="highlight text-sm mb-1 uppercase">Việc Cần Làm:</p>
+                    <ul class="list-dot text-sm pl-2">
+                        <li>Cần bước ra ngoài gặp gỡ, tìm kiếm trải nghiệm để làm (coi phim, cà phê, hái rau, tưới cây, chạy bộ, bơi lội, đi làm...).</li>
+                        <li>Tương tác, thử những môn/lĩnh vực mới.</li>
+                        <li>Đừng ngồi yên trong nhà chỉ để coi tiktok, tivi...</li>
+                        <li>Xung quanh bạn càng nhiều việc, càng nhiều trải nghiệm mới càng tốt. Bạn sẽ thấy dễ chịu và bớt suy tư miên man.</li>
+                    </ul>
+                 </div>`, "water");
+            } else { // ÍT SỐ 1 (1, 11)
+                addCard("SỐ 1: BÌNH YÊN (Ít số 1)", 
+                `<p>Sự hỗn loạn từ thế giới bên ngoài sẽ không ảnh hưởng quá lớn đến nội tâm bên trong bạn. Tháng này sẽ khá yên ổn, yêu đời, nhẹ nhàng, không có nhiều thứ làm bạn bận tâm. Hãy học và làm việc bình thường như mọi khi.</p>`, "water");
+            }
+
+            // SỐ 6
+            if ((counts['6'] || 0) >= 2) { // 2 SỐ 6 TRỞ LÊN
+                addCard("SỐ 6: THỨC TỈNH NHẬN THỨC (Nhiều số 6)", 
+                `<p>Tháng này sẽ có sự tác động khá mạnh mẽ tới nhận thức, tư duy của bạn.</p>
+                 <div class="mt-3 p-3 bg-white/5 rounded border border-white/10">
+                    <p class="highlight text-sm mb-1 uppercase">Việc Cần Làm:</p>
+                    <ul class="list-dot text-sm pl-2">
+                        <li>Đừng quá an toàn. Nếu quá an toàn và không chấp nhận sai lầm, bạn sẽ bỏ lỡ cơ hội trưởng thành. Hãy cho phép bản thân được sai lầm.</li>
+                        <li>Nhìn thẳng vào sai lầm, phân tích lý do, đúc kết kinh nghiệm. Tốc độ trưởng thành sẽ rất nhanh.</li>
+                        <li>Sau khi ngộ ra, bạn sẽ thấy chín chắn, tỉnh táo hơn. Những biến cố/mù quáng sẽ có giá trị lớn riêng với bạn.</li>
+                    </ul>
+                 </div>`, "fire");
+            } else if ((counts['6'] || 0) == 1) { // 1 SỐ 6
+                addCard("SỐ 6: BÀI HỌC TRƯỞNG THÀNH (1 Số 6)", 
+                `<div class="mt-3 p-3 bg-white/5 rounded border border-white/10">
+                    <p class="highlight text-sm mb-1 uppercase">Việc Cần Làm:</p>
+                    <ul class="list-dot text-sm pl-2">
+                        <li>Đừng quá an toàn. Hãy cho phép bản thân được sai lầm trong tháng này.</li>
+                        <li>Cần nhìn thẳng vào sai lầm và phân tích lý do đúng sai.</li>
+                        <li>Sau khi ngộ ra, bạn sẽ thấy chín chắn và trưởng thành hơn rất nhiều.</li>
+                    </ul>
+                 </div>`, "fire");
+            }
+
+            // SỐ 3 VÀ SỐ 8 (Xử lý tổ hợp trước)
+            const has3 = (counts['3'] || 0) > 0;
+            const has8 = (counts['8'] || 0) > 0;
+
+            if (has3 && has8) { // CÓ CẢ 3 VÀ 8
+                addCard("CÂN BẰNG: TƯƠNG TÁC & TẬN HƯỞNG (Có 3 & 8)", 
+                `<p>Bạn có sự ủng hộ lớn từ vũ trụ.</p>
+                 <div class="mt-3 p-3 bg-white/5 rounded border border-white/10">
+                    <p class="highlight text-sm mb-1 uppercase">Chiến Lược:</p>
+                    <p>Hãy dành ra <strong>50% thời gian</strong> để bước ra ngoài giao tiếp, mở rộng quan hệ mới và <strong>50% thời gian</strong> còn lại để làm việc mình yêu thích. Lúc này bạn chỉ cần lên tiếng thì hầu như tất cả mọi người sẽ hỗ trợ bạn ngay.</p>
+                 </div>`, "wood");
+            } else if (!has3 && !has8) { // KHÔNG CÓ 3 VÀ KHÔNG CÓ 8
+                addCard("KỶ LUẬT: TỰ LỰC CÁNH SINH (Thiếu 3 & 8)", 
+                `<p>Tháng của sự nghiêm túc và độc lập.</p>
+                 <div class="mt-3 p-3 bg-white/5 rounded border border-white/10">
+                    <p class="highlight text-sm mb-1 uppercase">Cảnh Báo:</p>
+                    <ul class="list-dot text-sm pl-2">
+                        <li>Đừng chiều chuộng cảm xúc bản thân, đừng tập trung tận hưởng.</li>
+                        <li>Những thứ mình muốn sẽ không dễ dàng được đáp ứng.</li>
+                        <li>Không có nhiều quý nhân xuất hiện để hỗ trợ tài chính.</li>
+                        <li><strong>Hành động:</strong> Hãy độc lập, tự đứng lên và làm việc nghiêm túc, bền bỉ, tập trung.</li>
+                    </ul>
+                 </div>`, "metal");
+            } else {
+                // Xử lý riêng lẻ nếu không rơi vào 2 trường hợp trên
+                if (has3) {
+                    addCard("SỐ 3: MỞ RỘNG KẾT NỐI", 
+                    `<p>Bạn có cơ hội gặp quý nhân (khách hàng, đối tác, thầy cô...).</p>
+                     <div class="mt-3 p-3 bg-white/5 rounded border border-white/10">
+                        <p class="highlight text-sm mb-1 uppercase">Việc Cần Làm:</p>
+                        <p>Cần gia tăng tương tác xã hội, mở rộng mối quan hệ mới, bước ra vùng an toàn để kết nối hòa nhập.</p>
+                     </div>`, "wood");
+                }
+                if (has8) {
+                    addCard("SỐ 8: TẬN HƯỞNG & ĐẦU TƯ", 
+                    `<div class="mt-3 p-3 bg-white/5 rounded border border-white/10">
+                        <p class="highlight text-sm mb-1 uppercase">Việc Cần Làm:</p>
+                        <ul class="list-dot text-sm pl-2">
+                            <li>Dành thời gian thư giãn, tận hưởng cuộc sống, chăm sóc bản thân.</li>
+                            <li>Nếu chưa có tiền nhưng nhiều thời gian: Học tập, đọc sách, xem phim.</li>
+                            <li>Nếu có tiền: Sử dụng để đầu tư cho những thứ mình thích.</li>
+                            <li>Mọi người sẽ không tạo quá nhiều áp lực cho bạn trong tháng này.</li>
+                        </ul>
+                     </div>`, "wood");
+                }
+            }
+
+            // SỐ 7
+            if ((counts['7'] || 0) > 0) {
+                addCard("SỐ 7: MỤC TIÊU & HOÀI BÃO", 
+                `<p>Bạn sẽ quan tâm nhiều tới mục tiêu, hoài bão và đam mê cá nhân.</p>
+                 <div class="mt-3 p-3 bg-white/5 rounded border border-white/10">
+                    <p class="highlight text-sm mb-1 uppercase">Việc Cần Làm:</p>
+                    <p>Tự hỏi các câu hỏi lớn: "Tôi có thể làm được gì? Đam mê là gì? Khả năng là gì? Mục tiêu và lý tưởng ra sao?". Đây là lúc định hình tầm nhìn.</p>
+                 </div>`, "fire");
+            } else {
+                addCard("THỰC TẾ (Không có số 7)", 
+                `<p>Hãy bám sát vào đời sống thực tế hiện tại để làm việc. Không cần quan tâm quá nhiều tới việc "Tôi là ai" hay "Tầm nhìn là gì". Hãy tập trung xử lý các vấn đề còn lại trong tháng này.</p>`, "earth");
+            }
+
+            // SỐ 2 (Logic phức tạp với Số 7)
+            const count2 = counts['2'] || 0;
+            const has7 = (counts['7'] || 0) > 0;
+            
+            if (count2 > 0) {
+                let title2 = count2 >= 3 ? "SỐ 2: TRÁCH NHIỆM LỚN (Nhiều số 2)" : "SỐ 2: PHỤNG SỰ (1-2 số 2)";
+                let content2 = `
+                    <p>Hãy tập trung phục vụ mọi người, thực hiện nghĩa vụ với cộng đồng và gia đình (làm mẹ, làm sếp, chia sẻ kiến thức...). Chức vụ càng lớn, trách nhiệm càng cao. Càng phục vụ, sự thăng tiến càng nhanh.</p>
+                    <p class="mt-2">Công việc cần làm đang nằm ngay trước mắt, sát bên tai bạn.</p>
+                `;
+                
+                let note2 = "";
+                if (!has7) {
+                    note2 = `<p class="mt-2 text-[#d4af37] italic">LƯU Ý: Làm vì tình yêu thương, không phải vì lợi lạc bản thân. Đừng để ý mục tiêu cá nhân. Hãy xử lý việc trước mắt dù có thể bạn không thích.</p>`;
+                } else {
+                    note2 = `<p class="mt-2 text-[#d4af37] italic">LƯU Ý: Bạn sẽ vừa phục vụ cộng đồng vừa thực hiện đam mê riêng (do có số 7). Công việc sẽ phức tạp và bận rộn hơn nhiều.</p>`;
+                }
+
+                addCard(title2, 
+                `<div class="mt-3 p-3 bg-white/5 rounded border border-white/10">
+                    <p class="highlight text-sm mb-1 uppercase">Việc Cần Làm:</p>
+                    ${content2}
+                    ${note2}
+                 </div>`, "fire");
+            }
+
+            // SỐ 9
+            const count9 = counts['9'] || 0;
+            if (count9 == 1) {
+                addCard("SỐ 9: TÌM KIẾM TÀI CHÍNH (1 Số 9)", 
+                `<div class="mt-3 p-3 bg-white/5 rounded border border-white/10">
+                    <p class="highlight text-sm mb-1 uppercase">Việc Cần Làm:</p>
+                    <ul class="list-dot text-sm pl-2">
+                        <li>Hãy tìm kiếm việc làm tạo ra tiền. Nếu trẻ/ít kinh nghiệm, hãy làm nhiều việc khác nhau.</li>
+                        <li>Có thể bày ra cái gì đó để bán (bánh tráng, đồ ăn...). Bán tùy thích, miễn tốt cho khách.</li>
+                        <li>Cần linh hoạt, đa dạng sản phẩm để khách quay lại.</li>
+                    </ul>
+                 </div>`, "metal");
+            } else if (count9 >= 2) {
+                addCard("SỐ 9: KINH DOANH GIÁ TRỊ CAO (2 Số 9 trở lên)", 
+                `<div class="mt-3 p-3 bg-white/5 rounded border border-white/10">
+                    <p class="highlight text-sm mb-1 uppercase">Việc Cần Làm:</p>
+                    <ul class="list-dot text-sm pl-2">
+                        <li>Cần bán sản phẩm có tính ứng dụng cao, giá trị cao, ai cũng cần.</li>
+                        <li>Bạn cần có chuyên môn giỏi.</li>
+                        <li>Khách hàng mua vì giá trị thực sự và phù hợp. Hãy chọn sản phẩm thể hiện đẳng cấp con người bạn, không bán tùy thích.</li>
+                    </ul>
+                 </div>`, "metal");
+            } else {
+                // KHÔNG CÓ SỐ 9
+                if (has3) {
+                    addCard("TÌM KHÁCH HÀNG (Không số 9, Có số 3)", 
+                    `<p>Hãy chủ động ra ngoài ngoại giao để tìm kiếm khách hàng mới. Quảng cáo, PA, đặt lịch KOL. Nếu ngại tương tác với người lạ thì khó bán được hàng.</p>`, "wood");
+                } 
+                if (!has3 && !has8) {
+                    addCard("TÀI CHÍNH KHÓ KHĂN (Không 9, 3, 8)", 
+                    `<p>Bạn sẽ hơi khó kiếm tiền trong tháng này.</p>
+                     <div class="mt-3 p-3 bg-white/5 rounded border border-white/10">
+                        <p class="highlight text-sm mb-1 uppercase">Lời Khuyên:</p>
+                        <ul class="list-dot text-sm pl-2">
+                            <li>Tập trung vào nghĩa vụ, trách nhiệm.</li>
+                            <li>Đừng áp lực việc kiếm tiền. Hãy hiểu quy luật có tháng kiếm được, có tháng cần tu dưỡng/kết giao/chăm sóc gia đình.</li>
+                            <li>Tính toán lộ trình trả nợ kỹ lưỡng (nếu có).</li>
+                        </ul>
+                     </div>`, "earth");
+                }
+            }
+
+            // SỐ 4
+            if ((counts['4'] || 0) > 0) {
+                addCard("SỐ 4: SỨC KHỎE LÀ VÀNG", 
+                `<p>Ưu tiên hàng đầu tháng này là chăm sóc sức khỏe.</p>
+                 <div class="mt-3 p-3 bg-white/5 rounded border border-white/10">
+                    <p class="highlight text-sm mb-1 uppercase">Việc Cần Làm:</p>
+                    <ul class="list-dot text-sm pl-2">
+                        <li>Nếu cảm thấy có bệnh/đau ở đâu, hãy tập trung chữa trị ngay.</li>
+                        <li>Tạm gác công việc để chữa bệnh. Sức khỏe yếu thì không làm gì hiệu quả được.</li>
+                        <li>Ví dụ: Yếu thì tập cơ, trúng gió/tiêu hóa kém thì đi khám, rụng tóc/nổi mụn thì đi chữa.</li>
+                    </ul>
+                 </div>`, "metal");
+            }
+
+            // SỐ 5
+            if ((counts['5'] || 0) > 0) {
+                addCard("SỐ 5: GIAO TIẾP & DIỄN ĐẠT", 
+                `<div class="mt-3 p-3 bg-white/5 rounded border border-white/10">
+                    <p class="highlight text-sm mb-1 uppercase">Việc Cần Làm:</p>
+                    <p>Hãy ra ngoài tương tác, chia sẻ, thảo luận, đào tạo nhiều nhất có thể. Mục tiêu là luyện khả năng ăn nói khéo léo, dễ hiểu. Nếu không luyện, cách nói của bạn dễ gây hiểu lầm, cấn tâm hoặc mâu thuẫn.</p>
+                 </div>`, "earth");
+            } else {
+                // KHÔNG CÓ SỐ 5
+                let warning5 = `<p>Hãy im lặng nhiều hơn, bớt nói lại, chỉ nói khi cần thiết. Đừng xen vào chuyện người khác kẻo gặp xui xẻo.</p>`;
+                
+                if ((counts['6'] || 0) > 0) {
+                    warning5 += `<p class="mt-2 text-red-400 font-bold"><i class="fas fa-exclamation-circle"></i> ĐẶC BIỆT LƯU Ý (Có thêm số 6): Suy nghĩ thật kỹ trước khi nói. Bạn rất dễ phạm khẩu nghiệp, thiếu cẩn ngôn, gây hiềm khích lớn.</p>`;
+                }
+
+                addCard("TỊNH KHẨU (Không có số 5)", warning5, "warning");
+            }
+        }
+
+        window.onload = populateDropdowns;
+    </script>
+</body>
+</html>

@@ -3,733 +3,677 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matrix Wisdom - Minh Triết Năng Lượng (Data Updated)</title>
+    <title>Matrix Wisdom App (Cloud)</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- Tích hợp Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
     <style>
-        :root {
-            --bg-dark: #121212;
-            --gold: #d4af37;
-            --text-main: #e2e8f0;
+        body, .serif, .sans { font-family: 'Inter', sans-serif !important; }
+        .A4-page {
+            width: 210mm; min-height: 297mm; padding: 20mm; margin: 0 auto;
+            background: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); color: #000;
         }
-
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            min-height: 100vh;
-            background-image: 
-                linear-gradient(to bottom, rgba(18, 18, 18, 0.95), rgba(18, 18, 18, 0.98)),
-                url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=2000&auto=format&fit=crop');
-            background-size: cover;
-            background-attachment: fixed;
-        }
-
-        .serif-font { font-family: 'Playfair Display', serif; }
-
-        /* Glass Panel */
-        .glass {
-            background: rgba(30, 30, 36, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-        }
-
-        .input-custom {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: 0.3s;
-            color: white;
-        }
-        .input-custom:focus {
-            border-color: var(--gold);
-            outline: none;
-        }
-
-        /* Buttons */
-        .btn-gold {
-            background: linear-gradient(135deg, #d4af37, #f3e5ab, #b48811);
-            color: #000;
-            font-weight: 600;
-            transition: 0.3s;
-        }
-        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3); }
-
-        .btn-outline {
-            border: 1px solid var(--gold);
-            color: var(--gold);
-        }
-        .btn-outline:hover { background: var(--gold); color: #000; }
-        
-        .btn-danger {
-            border: 1px solid #ef4444;
-            color: #ef4444;
-        }
-        .btn-danger:hover { background: #ef4444; color: white; }
-
-        /* Print Area specific */
-        #printArea {
-            background: #121212 !important; /* Màu nền mặc định phải đen */
-            color: #fff;
-            position: relative;
-            overflow: hidden; 
-        }
-
-        /* Typography highlighting */
-        .highlight { color: #d4af37; font-weight: 600; }
-        .list-dot li { margin-bottom: 6px; position: relative; padding-left: 15px; }
-        .list-dot li::before { content: "•"; color: #d4af37; position: absolute; left: 0; }
-        
-        /* Loading Overlay */
-        #loadingOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 9999;
-            display: none; align-items: center; justify-content: center;
-        }
+        @media (max-width: 768px) { .A4-page { width: 100%; padding: 20px; min-height: auto; } }
+        @keyframes bounce-in { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .animate-bounce-in { animation: bounce-in 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+        @media print { .break-inside-avoid { page-break-inside: avoid; } }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center p-4">
+<body class="bg-[#F3F4F6]">
+    <div id="root"></div>
 
-    <!-- Loading -->
-    <div id="loadingOverlay">
-        <i class="fas fa-circle-notch fa-spin text-4xl text-[#d4af37]"></i>
-    </div>
-
-    <!-- LOGIN SCREEN -->
-    <div id="loginScreen" class="w-full max-w-md glass rounded-2xl p-10 relative hidden animate-fade-in mt-10">
-        <div class="text-center mb-10">
-            <i class="fas fa-infinity text-5xl text-[#d4af37] mb-4"></i>
-            <h1 class="text-3xl font-bold text-[#d4af37] serif-font">Matrix Wisdom</h1>
-            <p class="text-gray-400 text-xs mt-3 uppercase tracking-widest">BẬT MÍ HUYỀN CƠ TỪNG THÁNG TRONG NĂM</p>
-        </div>
-        <form onsubmit="handleLogin(event)" class="space-y-6">
-            <input type="text" id="username" class="input-custom w-full rounded-lg py-3 px-4" placeholder="Tên truy cập" required>
-            <input type="password" id="password" class="input-custom w-full rounded-lg py-3 px-4" placeholder="Mật mã" required>
-            <p id="loginError" class="text-red-400 text-sm hidden text-center">Thông tin không chính xác hoặc lỗi kết nối</p>
-            <button type="submit" class="btn-gold w-full py-3 rounded-lg uppercase tracking-wider">Mở Cổng</button>
-        </form>
-    </div>
-
-    <!-- MAIN APP -->
-    <div id="appScreen" class="w-full max-w-5xl hidden pb-10 mt-10">
-        
-        <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-center mb-8 glass p-6 rounded-2xl border-t border-[#d4af37]/30">
-            <div class="flex items-center gap-4 mb-4 md:mb-0">
-                <i class="fas fa-sun text-3xl text-[#d4af37] animate-pulse"></i>
-                <div>
-                    <h2 class="text-xl font-bold text-white serif-font">Báo Cáo Năng Lượng</h2>
-                    <p class="text-xs text-gray-400 uppercase tracking-widest">Phiên bản 2.0 (Data mới)</p>
-                </div>
-            </div>
-            <div class="flex gap-4 items-center">
-                <span id="welcomeUser" class="text-sm text-[#d4af37] font-semibold mr-2"></span>
-                <button onclick="downloadPDF()" class="btn-outline px-5 py-2 rounded-full text-sm font-semibold flex items-center gap-2 transition hover:scale-105">
-                    <i class="fas fa-file-pdf"></i> Xuất PDF
-                </button>
-                <button onclick="handleLogout()" class="text-gray-400 hover:text-white px-3" title="Đăng xuất">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-            </div>
-        </header>
-
-        <!-- ADMIN DASHBOARD (Only visible for admin) -->
-        <div id="adminPanel" class="hidden glass p-8 rounded-2xl mb-8 border border-[#d4af37]/50">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-[#d4af37] serif-font"><i class="fas fa-users-cog mr-2"></i>Quản Trị Người Dùng</h3>
-                <span class="text-xs bg-[#d4af37] text-black px-2 py-1 rounded font-bold">ADMIN ACCESS</span>
-            </div>
-            
-            <!-- Add User Form -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 bg-white/5 p-4 rounded-xl">
-                <input type="text" id="newUsername" placeholder="Username mới" class="input-custom rounded px-3 py-2 text-sm">
-                <input type="text" id="newPassword" placeholder="Password (Plaintext)" class="input-custom rounded px-3 py-2 text-sm">
-                <button onclick="addNewUser()" class="btn-gold rounded px-4 py-2 text-sm font-bold">Thêm User</button>
-            </div>
-
-            <!-- User List Table -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-gray-300">
-                    <thead class="text-xs uppercase bg-white/10 text-[#d4af37]">
-                        <tr>
-                            <th class="px-4 py-3 rounded-tl-lg">ID</th>
-                            <th class="px-4 py-3">Username</th>
-                            <th class="px-4 py-3">Password</th>
-                            <th class="px-4 py-3">Role</th>
-                            <th class="px-4 py-3 rounded-tr-lg text-center">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody id="userTableBody">
-                        <!-- Data injected by JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Input Area -->
-            <div class="glass p-8 rounded-2xl mb-8 flex flex-col items-center justify-center">
-            <h3 class="text-[#d4af37] text-sm uppercase tracking-[0.2em] mb-6 border-b border-[#d4af37]/30 pb-2">Nhập Thông Tin Tra Cứu</h3>
-            
-            <div class="w-full max-w-lg space-y-5">
-                <!-- Nhập Họ Tên -->
-                <div class="text-left">
-                    <label class="text-gray-400 text-xs uppercase ml-1 mb-1 block">Họ và Tên</label>
-                    <input type="text" id="fullName" 
-                        class="input-custom w-full rounded-lg py-3 px-4 text-white placeholder-gray-600 focus:border-[#d4af37] transition" 
-                        placeholder="Ví dụ: Nguyễn Văn A">
-                </div>
-
-                <!-- Nhập Ngày Sinh -->
-                <div class="text-left">
-                    <label class="text-gray-400 text-xs uppercase ml-1 mb-1 block">Ngày sinh (Chỉ lấy ngày)</label>
-                    <div class="relative">
-                        <select id="dobDay" class="input-custom w-full rounded-lg py-3 px-4 text-white focus:border-[#d4af37] transition appearance-none cursor-pointer bg-[#121212]">
-                            <option value="" disabled selected>Chọn Ngày Sinh</option>
-                            <!-- Javascript sẽ tự điền số 1-31 vào đây -->
-                        </select>
-                        <i class="fas fa-chevron-down absolute right-4 top-4 text-xs text-gray-500 pointer-events-none"></i>
-                    </div>
-                </div>
-
-                <!-- Nhập Thời Gian Muốn Xem -->
-                <div class="text-left">
-                    <label class="text-gray-400 text-xs uppercase ml-1 mb-1 block text-[#d4af37]">Thời gian muốn dự báo</label>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="relative">
-                            <select id="targetMonth" class="input-custom w-full rounded-lg py-3 px-2 text-white focus:border-[#d4af37] transition appearance-none cursor-pointer text-center bg-[#121212]">
-                                <option value="" disabled>Tháng</option>
-                                <!-- JS fill 1-12 -->
-                            </select>
-                            <i class="fas fa-chevron-down absolute right-2 top-4 text-xs text-gray-500 pointer-events-none"></i>
-                        </div>
-                        <input type="number" id="targetYear" placeholder="Năm (VD: 2025)" 
-                            class="input-custom w-full rounded-lg py-3 px-2 text-white focus:border-[#d4af37] transition text-center placeholder-gray-600">
-                    </div>
-                </div>
-
-                <!-- Nút Tra Cứu -->
-                <button onclick="calculateMatrix()" 
-                    class="btn-gold w-full py-3 rounded-lg uppercase tracking-wider font-bold shadow-lg hover:shadow-[#d4af37]/40 mt-4">
-                    <i class="fas fa-fingerprint mr-2"></i> Giải Mã Năng Lượng
-                </button>
-            </div>
-
-            <p class="text-gray-500 text-xs mt-6 italic text-center">
-                * Công thức: Ngày Sinh + Tháng Muốn Xem + Năm Muốn Xem
-            </p>
-        </div>
-
-
-        <!-- REPORT CONTENT -->
-        <div id="printArea" class="glass p-10 rounded-2xl min-h-[800px]">
-            <!-- Decorative Elements -->
-            <div class="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
-                <i class="fas fa-fingerprint text-9xl text-white"></i>
-            </div>
-
-            <div class="relative z-10">
-                <!-- Title Section -->
-                <div class="text-center mb-12 border-b border-gray-800 pb-8">
-                    <h1 class="text-4xl md:text-5xl font-bold text-[#d4af37] serif-font mb-3">Thông Điệp Định Mệnh</h1>
-                    <p id="reportDate" class="text-gray-400 font-light text-lg">...</p>
-                    <div id="dailyVibe" class="mt-6 hidden bg-white/5 inline-block px-6 py-3 rounded-lg border border-white/10">
-                        <p class="text-lg text-white italic serif-font">" <span id="vibeText"></span> "</p>
-                    </div>
-                </div>
-
-                <!-- Empty State -->
-                <div id="welcomeMessage" class="text-center py-20 opacity-40">
-                    <i class="fas fa-compass text-6xl mb-4"></i>
-                    <p class="text-xl font-light">Hãy nhập thông tin để giải mã bản đồ tâm thức.</p>
-                </div>
-
-                <!-- Results Grid -->
-                <div id="resultContainer" class="hidden grid grid-cols-1 gap-6">
-                    <!-- Cards injected via JS -->
-                </div>
-
-                <!-- Footer -->
-                <div id="footerSignature" class="hidden mt-16 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div class="text-center md:text-left">
-                        <p class="text-[#d4af37] font-bold text-lg serif-font">Matrix Wisdom System</p>
-                        <p class="text-gray-600 text-xs uppercase tracking-wider">Báo cáo bảo mật cá nhân</p>
-                    </div>
-                    <div class="text-xs text-gray-600">
-                        © 2025 by Heart Sun 
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
+    <script type="text/babel">
         // ==========================================
-        // CẤU HÌNH SUPABASE
+        // 0. CẤU HÌNH SUPABASE (BẠN ĐIỀN VÀO ĐÂY)
         // ==========================================
-        const SUPABASE_URL = 'https://wjedhoohyukajjwoosef.supabase.co'; 
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndqZWRob29oeXVrYWpqd29vc2VmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQzMjQ3OTEsImV4cCI6MjA3OTkwMDc5MX0.eYbnfEqh4OePs5tDhk4D1dP28T9uT6tzXy7wyY1neEY'; 
         
-        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Vào Settings -> API -> Project URL
+        const SUPABASE_URL = 'https://nfojmndryasqyzyoyomi.supabase.co'; 
+        
+        // Vào Settings -> API -> Project API keys -> anon public
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mb2ptbmRyeWFzcXl6eW95b21pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyNjgxMDgsImV4cCI6MjA3ODg0NDEwOH0.kyMOYBdkOGCsb_PapGgHAYtGYXKMyHLIOrY1aNdBUDI'; 
 
-        const STORAGE_KEY = 'matrix_wisdom_session_v5';
-        let currentUserRole = null;
+        // Khởi tạo Client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function populateDropdowns() {
-            const daySelect = document.getElementById('dobDay');
-            const monthSelect = document.getElementById('targetMonth');
-            const yearInput = document.getElementById('targetYear');
+        const { useState, useEffect } = React;
 
-            // Fill Ngày Sinh 1 -> 31
-            for (let i = 1; i <= 31; i++) {
-                let option = document.createElement('option');
-                option.value = i < 10 ? '0' + i : i;
-                option.text = i;
-                daySelect.appendChild(option);
-            }
+        // ==========================================
+        // 1. ICONS
+        // ==========================================
+        const IconBase = ({ children, size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>
+        );
+        const LogOut = (props) => <IconBase {...props}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></IconBase>;
+        const FileText = (props) => <IconBase {...props}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></IconBase>;
+        const Settings = (props) => <IconBase {...props}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></IconBase>;
+        const Trash2 = (props) => <IconBase {...props}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></IconBase>;
+        const Plus = (props) => <IconBase {...props}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></IconBase>;
+        const X = (props) => <IconBase {...props}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></IconBase>;
+        const Check = (props) => <IconBase {...props}><polyline points="20 6 9 17 4 12"/></IconBase>;
+        const AlertCircle = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></IconBase>;
+        const Calendar = (props) => <IconBase {...props}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></IconBase>;
 
-            // Fill Tháng Xem 1 -> 12
-            const currentMonth = new Date().getMonth() + 1;
-            for (let i = 1; i <= 12; i++) {
-                let option = document.createElement('option');
-                option.value = i < 10 ? '0' + i : i;
-                option.text = "Tháng " + i;
-                if (i === currentMonth) option.selected = true;
-                monthSelect.appendChild(option);
-            }
+        // ==========================================
+        // 2. MAIN APP
+        // ==========================================
 
-            // Default Năm Xem = Năm hiện tại
-            yearInput.value = new Date().getFullYear();
-        }
+        function MatrixWisdomApp() {
+            const [users, setUsers] = useState([]);
+            const [currentUser, setCurrentUser] = useState(null);
+            const [view, setView] = useState('login'); 
+            const [reportData, setReportData] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [toast, setToast] = useState(null);
 
-        // --- AUTH & INIT ---
-        async function init() {
-            populateDropdowns(); 
+            // Fetch users (cho Admin)
+            const fetchUsers = async () => {
+                const { data, error } = await supabase.from('users').select('*').order('id', { ascending: true });
+                if (data) setUsers(data);
+            };
 
-            try {
-                const sessionStr = localStorage.getItem(STORAGE_KEY);
-                const session = sessionStr ? JSON.parse(sessionStr) : null;
+            // Load users khi vào admin
+            useEffect(() => {
+                if (view === 'admin') fetchUsers();
+            }, [view]);
+
+            // Login
+            const handleLogin = async (u, p) => {
+                setLoading(true);
+                const { data, error } = await supabase.from('users').select('*').eq('username', u).eq('password', p).single();
+                setLoading(false);
+                if (data) {
+                    setCurrentUser(data);
+                    setView('app');
+                } else {
+                    showToast('Sai thông tin đăng nhập', 'error');
+                }
+            };
+
+            // Register
+            const handleRegister = async (u, p) => {
+                if(!u || !p) return showToast('Nhập đủ thông tin', 'error');
+                setLoading(true);
                 
-                if(session && session.isLoggedIn) {
-                    currentUserRole = session.role;
-                    document.getElementById('welcomeUser').innerText = `Xin chào, ${session.username}`;
-                    showApp();
-                } else {
-                    document.getElementById('loginScreen').classList.remove('hidden');
+                // Check exist
+                const { data: exist } = await supabase.from('users').select('id').eq('username', u).single();
+                if (exist) {
+                    setLoading(false);
+                    return showToast('Tài khoản đã tồn tại', 'error');
                 }
-            } catch (e) {
-                console.error("Init error:", e);
-                document.getElementById('loginScreen').classList.remove('hidden');
-            }
-        }
 
-        async function handleLogin(e) {
-            e.preventDefault();
-            const u = document.getElementById('username').value.trim();
-            const p = document.getElementById('password').value.trim();
-            const errorMsg = document.getElementById('loginError');
-            const loading = document.getElementById('loadingOverlay');
-
-            loading.style.display = 'flex';
-            errorMsg.classList.add('hidden');
-
-            try {
-                const { data, error } = await db
-                    .from('app_users')
-                    .select('*')
-                    .eq('username', u)
-                    .eq('password', p)
-                    .single();
-
-                loading.style.display = 'none';
-
-                if (error || !data) {
-                    errorMsg.innerText = "Tên đăng nhập hoặc mật khẩu không đúng.";
-                    errorMsg.classList.remove('hidden');
+                const { data, error } = await supabase
+                    .from('users')
+                    .insert([{ username: u, password: p, role: 'user', allowed_frames: [] }])
+                    .select().single();
+                
+                setLoading(false);
+                if (!error) {
+                    showToast('Đăng ký thành công');
+                    setCurrentUser(data);
+                    setView('app');
                 } else {
-                    const sessionData = { isLoggedIn: true, username: data.username, role: data.role };
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionData));
-                    currentUserRole = data.role;
-                    document.getElementById('welcomeUser').innerText = `Xin chào, ${data.username}`;
-                    
-                    document.getElementById('loginScreen').classList.add('hidden');
-                    showApp();
+                    showToast('Lỗi: ' + error.message, 'error');
                 }
-            } catch (err) {
-                loading.style.display = 'none';
-                console.error(err);
-                errorMsg.innerText = "Lỗi kết nối Server.";
-                errorMsg.classList.remove('hidden');
-            }
+            };
+
+            const handleLogout = () => {
+                setCurrentUser(null);
+                setReportData(null);
+                setView('login');
+            };
+
+            const showToast = (msg, type = 'success') => {
+                setToast({ msg, type });
+                setTimeout(() => setToast(null), 3000);
+            };
+
+            return (
+                <div className="min-h-screen text-[#111827] font-sans">
+                    {toast && (
+                        <div className="fixed top-4 right-4 z-50 bg-white shadow-lg px-4 py-3 rounded-lg border border-gray-100 flex items-center gap-3 animate-bounce-in">
+                            {toast.type === 'error' ? <AlertCircle size={18} className="text-red-500"/> : <Check size={18} className="text-green-500"/>}
+                            <span className="text-sm font-medium">{toast.msg}</span>
+                        </div>
+                    )}
+
+                    {view === 'login' ? (
+                        <LoginScreen onLogin={handleLogin} onRegister={handleRegister} loading={loading} />
+                    ) : (
+                        <div className="flex flex-col min-h-screen">
+                            <NavBar 
+                                user={currentUser} 
+                                onLogout={handleLogout} 
+                                currentView={view} setView={setView}
+                                isReport={!!reportData} 
+                                onExport={() => exportPDF(reportData?.name)}
+                            />
+                            <main className="flex-1 w-full p-4 md:p-8 overflow-y-auto">
+                                {view === 'admin' ? (
+                                    <AdminPanel users={users} fetchUsers={fetchUsers} showToast={showToast} />
+                                ) : (
+                                    <React.Fragment>
+                                        {!reportData ? (
+                                            <InputSection 
+                                                user={currentUser} 
+                                                onCalculate={(data) => {
+                                                    setLoading(true);
+                                                    setTimeout(() => { setReportData(data); setLoading(false); }, 800);
+                                                }}
+                                                showToast={showToast} loading={loading}
+                                            />
+                                        ) : (
+                                            <ReportView data={reportData} onReset={() => setReportData(null)} />
+                                        )}
+                                    </React.Fragment>
+                                )}
+                            </main>
+                        </div>
+                    )}
+                </div>
+            );
         }
 
-        function handleLogout() { 
-            localStorage.removeItem(STORAGE_KEY); 
-            location.reload(); 
-        }
+        // ==========================================
+        // 3. COMPONENTS
+        // ==========================================
 
-        function showApp() { 
-            document.getElementById('appScreen').classList.remove('hidden'); 
-            if(currentUserRole === 'admin') {
-                document.getElementById('adminPanel').classList.remove('hidden');
-                loadUserList();
-            }
-        }
-        
-        // --- ADMIN FUNCTIONS ---
-        async function loadUserList() {
-            if(currentUserRole !== 'admin') return;
-            
-            const { data: users, error } = await db
-                .from('app_users')
-                .select('*')
-                .order('id', { ascending: true });
+        const LoginScreen = ({ onLogin, onRegister, loading }) => {
+            const [isRegister, setIsRegister] = useState(false);
+            const [u, setU] = useState('');
+            const [p, setP] = useState('');
+            const [confirmP, setConfirmP] = useState('');
 
-            if(error) return alert('Lỗi tải danh sách user');
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (isRegister && p !== confirmP) return alert("Mật khẩu không khớp");
+                isRegister ? onRegister(u, p) : onLogin(u, p);
+            };
 
-            const tbody = document.getElementById('userTableBody');
-            tbody.innerHTML = '';
+            return (
+                <div className="h-screen flex items-center justify-center bg-[#F3F4F6]">
+                    <div className="bg-white p-10 rounded-xl shadow-sm border border-gray-200 w-full max-w-sm">
+                        <h1 className="text-2xl font-bold text-center mb-8">{isRegister ? 'Đăng Ký' : 'Đăng Nhập'}</h1>
+                        <form onSubmit={handleSubmit} className="space-y-5">
+                            <div>
+                                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1.5">Tài khoản</label>
+                                <input className="w-full p-3 border border-gray-200 rounded-lg focus:border-gray-900 outline-none text-sm" value={u} onChange={e=>setU(e.target.value)} required autoFocus placeholder="Username"/>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1.5">Mật khẩu</label>
+                                <input type="password" className="w-full p-3 border border-gray-200 rounded-lg focus:border-gray-900 outline-none text-sm" value={p} onChange={e=>setP(e.target.value)} required placeholder="Password"/>
+                            </div>
+                            {isRegister && (
+                                <div className="animate-bounce-in">
+                                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-1.5">Xác nhận MK</label>
+                                    <input type="password" className="w-full p-3 border border-gray-200 rounded-lg focus:border-gray-900 outline-none text-sm" value={confirmP} onChange={e=>setConfirmP(e.target.value)} required placeholder="Nhập lại password"/>
+                                </div>
+                            )}
+                            <button disabled={loading} className="w-full bg-gray-900 hover:bg-black text-white py-3 rounded-lg font-semibold mt-2 transition-colors disabled:opacity-50 text-sm">
+                                {loading ? 'Đang xử lý...' : (isRegister ? 'Đăng Ký' : 'Đăng Nhập')}
+                            </button>
+                        </form>
+                        <div className="mt-6 text-center text-sm text-gray-500">
+                            {isRegister ? 'Đã có tài khoản? ' : 'Chưa có tài khoản? '}
+                            <button onClick={()=>setIsRegister(!isRegister)} className="font-bold text-gray-900 hover:underline">{isRegister ? 'Đăng nhập' : 'Đăng ký'}</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
 
-            users.forEach(user => {
-                const tr = document.createElement('tr');
-                tr.className = "border-b border-white/5 hover:bg-white/5 transition";
-                tr.innerHTML = `
-                    <td class="px-4 py-3">${user.id}</td>
-                    <td class="px-4 py-3 font-semibold text-white">${user.username}</td>
-                    <td class="px-4 py-3 font-mono text-gray-400">${user.password}</td>
-                    <td class="px-4 py-3">
-                        <span class="px-2 py-1 rounded text-xs uppercase ${user.role === 'admin' ? 'bg-[#d4af37] text-black' : 'bg-gray-700 text-white'}">${user.role}</span>
-                    </td>
-                    <td class="px-4 py-3 text-center">
-                        ${user.username !== 'admin' ? `<button onclick="deleteUser(${user.id})" class="btn-danger px-3 py-1 rounded text-xs"><i class="fas fa-trash"></i> Xóa</button>` : '<span class="text-gray-500 text-xs">Mặc định</span>'}
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
+        const NavBar = ({ user, onLogout, currentView, setView, isReport, onExport }) => (
+            <nav className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center sticky top-0 z-30">
+                <div className="font-bold text-xl cursor-pointer flex items-center gap-2" onClick={() => setView('app')}>
+                    <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center text-white text-xs font-bold">M</div>
+                    Matrix Wisdom
+                </div>
+                <div className="flex items-center gap-5 text-sm font-medium">
+                  
+                    {user?.role === 'admin' && (
+                        <button onClick={() => setView(currentView === 'admin' ? 'app' : 'admin')} className={`flex items-center gap-1.5 ${currentView === 'admin' ? 'text-gray-900 font-bold' : 'text-gray-500 hover:text-gray-900'}`}>
+                            <Settings size={18} /> Quản trị
+                        </button>
+                    )}
+                    <div className="h-5 w-px bg-gray-200"></div>
+                    <div className="flex items-center gap-3">
+                        <span className="text-gray-600 hidden sm:inline">{user?.username}</span>
+                        <button onClick={onLogout} className="text-gray-400 hover:text-red-600"><LogOut size={18}/></button>
+                    </div>
+                </div>
+            </nav>
+        );
 
-        async function addNewUser() {
-            const u = document.getElementById('newUsername').value.trim();
-            const p = document.getElementById('newPassword').value.trim();
+        const AdminPanel = ({ users, fetchUsers, showToast }) => {
+            const [newUser, setNewUser] = useState({ username: '', password: '' });
+            const [perm, setPerm] = useState({ month: '01', year: new Date().getFullYear() });
+            const [activeUser, setActiveUser] = useState(null);
 
-            if(!u || !p) return alert("Vui lòng nhập đủ thông tin");
-            document.getElementById('loadingOverlay').style.display = 'flex';
+            const addUser = async (e) => {
+                e.preventDefault();
+                if(!newUser.username || !newUser.password) return;
+                const { error } = await supabase.from('users').insert([{ ...newUser, role: 'user', allowed_frames: [] }]);
+                if (!error) {
+                    setNewUser({ username: '', password: '' });
+                    showToast('Đã thêm thành viên');
+                    fetchUsers();
+                } else showToast('Lỗi: ' + error.message, 'error');
+            };
 
-            const { error } = await db
-                .from('app_users')
-                .insert([{ username: u, password: p, role: 'user' }]); 
+            const addPerm = async () => {
+                if(!activeUser) return;
+                const current = activeUser.allowed_frames || [];
+                if(current.some(p => p.month === perm.month && p.year == perm.year)) return showToast('Đã có quyền này', 'error');
+                
+                const newFrames = [...current, { month: perm.month, year: String(perm.year) }];
+                const { error } = await supabase.from('users').update({ allowed_frames: newFrames }).eq('id', activeUser.id);
+                if (!error) {
+                    setActiveUser({ ...activeUser, allowed_frames: newFrames });
+                    fetchUsers();
+                    showToast('Đã thêm quyền');
+                }
+            };
 
-            document.getElementById('loadingOverlay').style.display = 'none';
+            const removePerm = async (idx) => {
+                if(!activeUser) return;
+                const newFrames = activeUser.allowed_frames.filter((_, i) => i !== idx);
+                const { error } = await supabase.from('users').update({ allowed_frames: newFrames }).eq('id', activeUser.id);
+                if (!error) {
+                    setActiveUser({ ...activeUser, allowed_frames: newFrames });
+                    fetchUsers();
+                }
+            };
 
-            if(error) alert("Lỗi: " + error.message);
-            else {
-                document.getElementById('newUsername').value = '';
-                document.getElementById('newPassword').value = '';
-                loadUserList(); 
-            }
-        }
+            const deleteUser = async (id) => {
+                if(!confirm("Xóa user này?")) return;
+                const { error } = await supabase.from('users').delete().eq('id', id);
+                if (!error) {
+                    fetchUsers();
+                    if(activeUser?.id === id) setActiveUser(null);
+                }
+            };
 
-        async function deleteUser(id) {
-            if(!confirm("Bạn có chắc muốn xóa user này?")) return;
-            document.getElementById('loadingOverlay').style.display = 'flex';
+            return (
+                <div className="max-w-5xl mx-auto">
+                    <div className="mb-8"><h2 className="text-2xl font-bold">Quản Trị (Cloud)</h2></div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="md:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                            <h3 className="font-bold mb-4 pb-2 border-b border-gray-100 flex justify-between">Danh sách <span className="text-gray-500 font-normal">{users.length}</span></h3>
+                            <div className="space-y-2 mb-6 max-h-[400px] overflow-y-auto pr-2">
+                                {users.map(u => (
+                                    <div key={u.id} className={`p-3 flex justify-between items-center rounded-lg cursor-pointer border ${activeUser?.id === u.id ? 'bg-gray-50 border-gray-300' : 'border-transparent hover:bg-gray-50'}`} onClick={() => u.role !== 'admin' && setActiveUser(u)}>
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${activeUser?.id === u.id ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}>{u.username[0].toUpperCase()}</div>
+                                            <div><div className="font-semibold text-sm">{u.username}</div><div className="text-xs text-gray-500">{u.role}</div></div>
+                                        </div>
+                                        {u.role !== 'admin' && <button onClick={(e) => { e.stopPropagation(); deleteUser(u.id); }} className="text-gray-300 hover:text-red-500 p-2"><Trash2 size={16}/></button>}
+                                    </div>
+                                ))}
+                            </div>
+                            <form onSubmit={addUser} className="flex gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                <input placeholder="Username" className="flex-1 p-2 bg-white border border-gray-200 rounded text-sm outline-none" value={newUser.username} onChange={e=>setNewUser({...newUser, username:e.target.value})}/>
+                                <input placeholder="Password" className="flex-1 p-2 bg-white border border-gray-200 rounded text-sm outline-none" value={newUser.password} onChange={e=>setNewUser({...newUser, password:e.target.value})}/>
+                                <button className="bg-gray-900 text-white px-4 py-2 rounded text-sm font-bold">Thêm</button>
+                            </form>
+                        </div>
+                        <div className="md:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-fit">
+                            <h3 className="font-bold mb-4 pb-2 border-b border-gray-100">Cấp quyền: <span className="text-blue-600">{activeUser?.username || '...'}</span></h3>
+                            {activeUser ? (
+                                <>
+                                    <div className="flex gap-2 mb-4">
+                                        <select className="p-2 border border-gray-200 rounded text-sm flex-1 outline-none" value={perm.month} onChange={e=>setPerm({...perm, month:e.target.value})}>
+                                            {Array.from({length: 12},(_,i)=>i+1).map(m=><option key={m} value={m<10?`0${m}`:`${m}`}>Tháng {m}</option>)}
+                                        </select>
+                                        <input type="number" className="p-2 border border-gray-200 rounded text-sm w-20 text-center outline-none" value={perm.year} onChange={e=>setPerm({...perm, year:e.target.value})}/>
+                                        <button onClick={addPerm} className="bg-gray-900 text-white px-3 rounded"><Plus size={16}/></button>
+                                    </div>
+                                    <div className="space-y-2 max-h-[300px] overflow-auto">
+                                        {(activeUser.allowed_frames||[]).map((p,i)=>(
+                                            <div key={i} className="flex justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 text-sm group">
+                                                <span>Tháng {p.month}/{p.year}</span>
+                                                <button onClick={()=>removePerm(i)} className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100"><X size={16}/></button>
+                                            </div>
+                                        ))}
+                                        {(!activeUser.allowed_frames?.length) && <div className="text-center text-xs text-gray-400 py-4">Chưa có quyền</div>}
+                                    </div>
+                                </>
+                            ) : <div className="text-center text-sm text-gray-400 py-10">Chọn tài khoản để xem</div>}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
 
-            const { error } = await db.from('app_users').delete().eq('id', id);
+        const InputSection = ({ user, onCalculate, showToast, loading }) => {
+            const [form, setForm] = useState({ name: '', birthDay: '', birthMonth: '', birthYear: '', targetMonth: String(new Date().getMonth()+1).padStart(2,'0'), targetYear: String(new Date().getFullYear()) });
+            const days = Array.from({length: 31},(_,i)=>i+1);
+            const months = Array.from({length: 12},(_,i)=>i+1);
 
-            document.getElementById('loadingOverlay').style.display = 'none';
-            if(error) alert("Lỗi xóa: " + error.message);
-            else loadUserList();
-        }
+            const submitManual = () => {
+                const { name, birthDay, birthMonth, birthYear, targetMonth, targetYear } = form;
+                if (!name || !birthDay || !birthMonth || !birthYear) return showToast('Nhập đủ thông tin', 'error');
+                if (user.role !== 'admin') {
+                    const frames = user.allowed_frames || [];
+                    if (!frames.some(p => p.month === targetMonth && p.year === targetYear)) return showToast(`Chưa có quyền xem Tháng ${targetMonth}/${targetYear}`, 'error');
+                }
+                onCalculate(calculateMatrixLogic(name, parseInt(birthDay), targetMonth, targetYear));
+            };
 
-        // --- CORE CALCULATION & RENDERING ---
-        function calculateMatrix() {
-            // 1. Lấy dữ liệu
-            const nameInput = document.getElementById('fullName').value.trim();
-            const dayInput = document.getElementById('dobDay').value;
-            const targetMonth = document.getElementById('targetMonth').value;
-            const targetYear = document.getElementById('targetYear').value;
+            const submitPreset = (m, y) => {
+                const { name, birthDay, birthMonth, birthYear } = form;
+                if (!name || !birthDay || !birthMonth || !birthYear) return showToast('Nhập đủ Tên và Ngày sinh trước', 'error');
+                onCalculate(calculateMatrixLogic(name, parseInt(birthDay), m, y));
+            };
 
-            // 2. Kiểm tra dữ liệu
-            if (!nameInput || !dayInput || !targetMonth || !targetYear) {
-                alert("Vui lòng nhập đầy đủ: Họ tên, Ngày sinh, Tháng và Năm muốn xem!");
-                return;
-            }
+            return (
+                <div className="flex flex-col items-center justify-center py-12">
+                    <div className="bg-white p-8 md:p-10 rounded-xl shadow-sm border border-gray-200 w-full max-w-lg">
+                        <div className="text-center mb-8"><h2 className="text-2xl font-bold">Tra Cứu Thông Tin</h2></div>
+                        <div className="space-y-5">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Họ và Tên</label>
+                                <input className="w-full p-3 border border-gray-200 rounded-lg focus:border-gray-900 outline-none uppercase font-semibold" placeholder="NGUYỄN VĂN A" value={form.name} onChange={e=>setForm({...form, name:e.target.value.toUpperCase()})}/>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Ngày Tháng Năm Sinh</label>
+                                <div className="flex gap-3">
+                                    <select className="flex-1 p-3 border border-gray-200 rounded-lg outline-none bg-white" value={form.birthDay} onChange={e=>setForm({...form, birthDay:e.target.value})}>
+                                        <option value="" disabled>Ngày</option>{days.map(d=><option key={d} value={d}>{d}</option>)}
+                                    </select>
+                                    <select className="flex-1 p-3 border border-gray-200 rounded-lg outline-none bg-white" value={form.birthMonth} onChange={e=>setForm({...form, birthMonth:e.target.value})}>
+                                        <option value="" disabled>Tháng</option>{months.map(m=><option key={m} value={m<10?`0${m}`:`${m}`}>{m}</option>)}
+                                    </select>
+                                    <input className="flex-1 p-3 border border-gray-200 rounded-lg outline-none text-center" placeholder="Năm" value={form.birthYear} onChange={e=>setForm({...form, birthYear:e.target.value})}/>
+                                </div>
+                            </div>
+                            <hr className="border-gray-100 my-4"/>
+                            {user.role === 'admin' ? (
+                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <div className="text-xs font-bold text-gray-500 mb-2 uppercase">Admin: Chọn Tháng Xem</div>
+                                    <div className="flex gap-3 mb-3">
+                                        <select className="flex-1 p-2 border border-gray-200 rounded bg-white text-sm" value={form.targetMonth} onChange={e=>setForm({...form, targetMonth:e.target.value})}>
+                                            {months.map(m=><option key={m} value={m<10?`0${m}`:`${m}`}>Tháng {m}</option>)}
+                                        </select>
+                                        <input className="w-24 p-2 border border-gray-200 rounded bg-white text-center text-sm" value={form.targetYear} onChange={e=>setForm({...form, targetYear:e.target.value})}/>
+                                    </div>
+                                    <button onClick={submitManual} disabled={loading} className="w-full bg-gray-900 text-white py-2.5 rounded font-bold hover:bg-black disabled:opacity-50 text-sm">{loading?'Đang tính...':'Xem Báo Cáo'}</button>
+                                </div>
+                            ) : (
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 mb-3 uppercase text-center">Chọn thời điểm xem báo cáo</label>
+                                    {(user.allowed_frames && user.allowed_frames.length > 0) ? (
+                                        <div className="grid grid-cols-1 gap-3">
+                                            {user.allowed_frames.map((f,i) => (
+                                                <button key={i} onClick={()=>submitPreset(f.month, f.year)} disabled={loading} className="flex items-center justify-between w-full p-4 bg-white border border-gray-200 rounded-xl hover:border-gray-900 hover:shadow-md transition-all group">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-900 group-hover:text-white transition-colors"><Calendar size={20}/></div>
+                                                        <div className="text-left"><div className="font-bold text-gray-900">Tháng {f.month}/{f.year}</div><div className="text-xs text-gray-500">Bấm để xem</div></div>
+                                                    </div>
+                                                    <div className="text-gray-400 group-hover:text-gray-900">→</div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    ) : <div className="text-center p-6 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50 text-gray-500 text-sm">Chưa có quyền xem tháng nào.<br/>Liên hệ Admin.</div>}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
 
-            if (targetYear.length !== 4 || isNaN(targetYear)) {
-                alert("Năm xem phải gồm 4 chữ số (Ví dụ: 2025)");
-                return;
-            }
+        const ReportView = ({ data, onReset }) => (
+            <div className="flex flex-col items-center pb-20">
+                <div className="w-full max-w-[210mm] mb-6 flex justify-between items-center">
+                    <button onClick={onReset} className="text-sm font-medium text-gray-500 hover:text-gray-900 flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white"><X size={16}/> Quay lại</button>
+                </div>
+                <div id="print-area" className="A4-page text-gray-900">
+                    <div className="text-center mb-12 pb-8 border-b-2 border-gray-900">
+                        <h1 className="text-4xl font-extrabold mb-4 uppercase">Báo Cáo Năng Lượng</h1>
+                        <div className="text-xl font-bold uppercase mb-2">{data.name}</div>
+                        <div className="text-sm font-medium text-gray-500 flex justify-center gap-4 uppercase"><span>Ngày sinh: {data.day}</span><span>•</span><span>Dự báo: Tháng {data.month}/{data.year}</span></div>
+                    </div>
+                    <div className="mb-12 text-center px-10">
+                        <div className="inline-block relative">
+                            <span className="text-4xl absolute -top-4 -left-6 text-gray-300">“</span>
+                            <p className="font-medium italic text-xl leading-relaxed text-gray-700">{data.vibe}</p>
+                            <span className="text-4xl absolute -bottom-8 -right-6 text-gray-300">”</span>
+                        </div>
+                    </div>
+                    <div className="space-y-8">
+                        {data.cards.map((c, i) => (
+                            <div key={i} className="break-inside-avoid">
+                                <h3 className="text-lg font-bold uppercase mb-3 flex items-center gap-3"><span className="bg-gray-900 text-white w-6 h-6 flex items-center justify-center rounded text-xs">{i+1}</span>{c.title}</h3>
+                                <div className="pl-9 text-justify leading-7 text-[15px]" dangerouslySetInnerHTML={{ __html: c.content }}/>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-16 pt-8 border-t border-gray-200 text-center text-xs text-gray-400 font-medium uppercase tracking-widest"><p>Báo cáo từ Matrix Wisdom.</p><p className="mt-1">© {new Date().getFullYear()} Heart Sun. All rights reserved.</p></div>
+                </div>
+            </div>
+        );
 
-            // 3. Chuẩn bị tính toán
-            const day = parseInt(dayInput); 
-            
-            document.getElementById('reportDate').innerHTML = `
-                <span class="block text-2xl text-white font-bold mb-2 uppercase tracking-wide">${nameInput}</span>
-                <span class="text-sm">Ngày sinh: <b class="text-[#d4af37]">${day}</b> • Dự báo: Tháng ${targetMonth}/${targetYear}</span>
-            `;
-
-            document.getElementById('welcomeMessage').classList.add('hidden');
-            document.getElementById('resultContainer').classList.remove('hidden');
-            document.getElementById('footerSignature').classList.remove('hidden');
-            document.getElementById('dailyVibe').classList.remove('hidden');
-
-            // --- LOGIC TÍNH TOÁN MA TRẬN MỚI ---
-            // Công thức: Ngày Sinh + Tháng Xem + Năm Xem
-            let raw = `${day}${targetMonth}${targetYear}`;
-            
-            // Tính các chỉ số phụ (n1, n2...) như cũ để có data ma trận
+        // ==========================================
+        // 4. LOGIC ENGINE
+        // ==========================================
+        function calculateMatrixLogic(name, day, monthStr, yearStr) {
+            const raw = `${day}${monthStr}${yearStr}`;
             let n1 = raw.split('').reduce((a,b)=>a+parseInt(b),0);
             let n2 = n1.toString().split('').reduce((a,b)=>a+parseInt(b),0);
-            
-            // Logic trừ đi 2 lần số đầu tiên của Ngày Sinh
             let firstDigit = day < 10 ? day : Math.floor(day/10);
             let n3 = n1 - (2 * firstDigit);
             let n4 = Math.abs(n3).toString().split('').reduce((a,b)=>a+parseInt(b),0);
-
-            // Tổng hợp tất cả các con số
             let allStr = raw + n1 + n2 + n3 + n4;
             let counts = {};
             for(let char of allStr) counts[char] = (counts[char]||0)+1;
 
-            // Vibe random
-            const vibes = [
-                "Năng lượng của bạn là chiếc chìa khóa mở cánh cửa định mệnh.",
-                "Sự tĩnh lặng hôm nay kiến tạo nên thành tựu ngày mai.",
-                "Chuyển hóa nghiệp lực thành nguyện lực.",
-                "Kết nối với bên trong để tỏa sáng ra bên ngoài.",
-                "Kỷ luật là tự do đích thực."
-            ];
-            document.getElementById('vibeText').innerText = vibes[n1 % vibes.length];
+            const vibes = ["Năng lượng là chìa khóa mở cánh cửa định mệnh.", "Tĩnh lặng hôm nay, thành tựu ngày mai.", "Chuyển hóa nghiệp lực thành nguyện lực.", "Kết nối bên trong, tỏa sáng bên ngoài.", "Kỷ luật là tự do đích thực."];
+            const cards = [];
+            const rep = (n, c) => String(n).repeat(Math.max(0, c));
 
-            renderCards(counts);
+// --- LOGIC XỬ LÝ SỐ 1 ---
+const count1 = counts[1] || 0;
+if (count1 > 0) {
+    if (count1 >= 3) {
+        // Nhiều số 1 (111, 1111...)
+        cards.push({
+            title: rep(1, count1),
+            content: `<b>VIỆC CẦN LÀM:</b><br/>Cần bước ra ngoài gặp gỡ, tìm kiếm trải nghiệm để làm, có thể là đi coi phim, đi cà phê, đi ăn, đi chơi, đi hái rau, tưới cây, chạy bộ, bơi lội, đi dạo, hoặc đi làm công việc gì đó, ít tiền hay nhiều tiền đều được, để tương tác, để thử những môn, những lĩnh vực, những trải nghiệm mới. Đừng ngồi yên trong nhà chỉ để coi tiktok, tivi,… Xung quanh bạn càng nhiều việc càng tốt, càng nhiều trải nghiệm mới càng tốt, sẽ càng cảm thấy dễ chịu, và bạn sẽ bớt suy tư miên man, suy nghĩ lung tung đi rất nhiều.`
+        });
+    } else {
+        // Ít số 1 (1, 11)
+        cards.push({
+            title: rep(1, count1),
+            content: `Sự hỗn loạn từ thế giới bên ngoài sẽ không ảnh hưởng quá lớn đến nội tâm bên trong bạn. Tháng này sẽ khá yên ổn, yêu đời, nhẹ nhàng, không có nhiều thứ làm bạn bận tâm. Hãy học và làm việc bình thường như mọi khi.`
+        });
+    }
+}
+
+// --- LOGIC XỬ LÝ SỐ 6 ---
+const count6 = counts[6] || 0;
+if (count6 === 1) {
+    cards.push({
+        title: rep(6, count6),
+        content: `<b>VIỆC CẦN LÀM:</b><br/>Đừng quá an toàn, nếu bạn quá an toàn và không chấp nhận sai lầm của bản thân, bạn sẽ bỏ lỡ đi một góc nhìn sâu sắc nào đó, bỏ qua một cơ hội nào đó để trưởng thành. Hãy cho phép bản thân được sai lầm trong tháng này.<br/>Cần nhìn thẳng vào sai lầm của bản thân và phân tích lý do, đúng sai ở đâu, đúc kết những kinh nghiệm từ những sai lầm cũ, nhờ đó mà tốc độ trưởng thành của bạn sẽ rất nhanh.<br/>Sau khi ngộ ra được rồi, bạn sẽ cảm thấy rất khác, cảm thấy rất chín chắn, trưởng thành hơn, tỉnh táo hơn. Những biến cố, những sự mù quáng, ngu ngơ sẽ có giá trị lớn với bạn và với riêng bạn, những người xung quanh sẽ không thấy rõ.`
+    });
+} else if (count6 >= 2) {
+    cards.push({
+        title: rep(6, count6),
+        content: `<b>VIỆC CẦN LÀM:</b><br/>Đừng quá an toàn, nếu bạn quá an toàn và không chấp nhận sai lầm của bản thân, bạn sẽ bỏ lỡ đi một góc nhìn sâu sắc nào đó, bỏ qua một cơ hội nào đó để trưởng thành. Hãy cho phép bản thân được sai lầm trong tháng này.<br/>Tháng này sẽ có sự tác động khá mạnh mẽ tới nhận thức, tư duy của bạn.<br/>Cần nhìn thẳng vào sai lầm của bản thân và phân tích lý do, đúng sai ở đâu, đúc kết những kinh nghiệm từ những sai lầm cũ, nhờ đó mà tốc độ trưởng thành của bạn sẽ rất nhanh.<br/>Sau khi ngộ ra được rồi, bạn sẽ cảm thấy rất khác, cảm thấy rất chín chắn, trưởng thành hơn, tỉnh táo hơn. Những biến cố, những sự mù quáng, ngu ngơ sẽ có giá trị lớn với bạn và với riêng bạn, những người xung quanh sẽ không thấy rõ.`
+    });
+}
+
+// --- LOGIC XỬ LÝ SỐ 3 VÀ SỐ 8 ---
+const has3 = (counts[3] || 0) > 0;
+const has8 = (counts[8] || 0) > 0;
+
+if (has3 && !has8) {
+    // CHỈ CÓ SỐ 3
+    cards.push({
+        title: rep(3, counts[3]),
+        content: `<b>VIỆC CẦN LÀM:</b><br/>Bạn cần gia tăng tương tác với xã hội, mở rộng mối quan hệ mới, bước ra vùng an toàn, kết nối hòa nhập với mọi người. Bạn sẽ có nhiều cơ hội gặp được nhiều quý nhân trong cuộc đời bạn. Quý nhân ở đây có thể là khách hàng, đối tác làm ăn, thầy/cô,…`
+    });
+} else if (has3 && has8) {
+    // CÓ CẢ 3 VÀ 8
+    cards.push({
+        title: `${rep(3, counts[3])} & ${rep(8, counts[8])}`,
+        content: `Hãy dành ra 50% thời gian trong ngày để bước ra ngoài giao tiếp, mở rộng mối quan hệ mới và 50% thời gian còn lại để làm những việc mà bạn yêu thích, lúc này bạn chỉ cần lên tiếng thì hầu như tất cả mọi người sẽ hỗ trợ, giúp đỡ bạn ngay.`
+    });
+} else if (!has3 && !has8) {
+    // KHÔNG CÓ 3 VÀ KHÔNG CÓ 8
+    cards.push({
+        title: "Không 3 & Không 8",
+        content: `Đừng chiều chuộng cảm xúc của bản thân, đừng tập trung tận hưởng. Những thứ mình muốn sẽ không dễ dàng được đáp ứng. Cũng không có quá nhiều quý nhân xuất hiện trong tháng này, để chỉ điểm, hỗ trợ hoặc mang tới nguồn tài chính cho mình. Hãy độc lập, tự đứng lên và làm việc nghiêm túc, bền bỉ, tập trung.`
+    });
+} else if (has8 && !has3) {
+    // CHỈ CÓ SỐ 8
+    cards.push({
+        title: rep(8, counts[8]),
+        content: `<b>VIỆC CẦN LÀM:</b><br/>Hãy dành thời gian để thư giãn, tận hưởng cuộc sống nhiều hơn một chút. Tận hưởng những thứ mà bạn đã tạo ra, chăm sóc, yêu thương bản thân. Nếu bạn chưa có tiền mà có rất nhiều thời gian trống thì hãy sử dụng thời gian đó hợp lý, như học tập, đọc sách, xem phim,… chẳng hạn. Nếu bạn có tiền thì đây là tháng mà bạn sẽ sử dụng số tiền đó để đầu tư cho những thứ mà mình thích. Bạn sẽ được phép làm theo những gì mà bạn muốn, mọi người sẽ không tạo quá nhiều áp lực cho bạn.`
+    });
+}
+
+// --- LOGIC XỬ LÝ SỐ 7 ---
+const has7 = (counts[7] || 0) > 0;
+if (has7) {
+    cards.push({
+        title: rep(7, counts[7]),
+        content: `<b>VIỆC CẦN LÀM:</b><br/>Trong tháng này, bạn sẽ quan tâm nhiều tới mục tiêu, hoài bão và đam mê cá nhân. Bạn sẽ biết được bạn có thể làm được gì, và cần phải làm gì. Thế nên đây là lúc để bạn tự hỏi các câu hỏi như “Tôi có thể làm được gì, đam mê của tôi là gì, khả năng của tôi là gì, mục tiêu thế nào, lý tưởng ra sao?”`
+    });
+} else {
+    cards.push({
+        title: "Không 7",
+        content: `Hãy bám sát vào đời sống thực tế hiện tại để làm việc, không cần quan tâm quá nhiều tới việc bạn có thể làm được gì, hãy tập trung xử lý các vấn đề còn lại trong tháng này. Đừng tập trung quá nhiều vào các câu hỏi như "Tôi là ai?", "Tôi có thể làm được gì?", "Điểm mạnh thật sự của tôi là gì?”, “Tầm nhìn, lý tưởng của tôi là gì?".`
+    });
+}
+
+// --- LOGIC XỬ LÝ SỐ 2 (KẾT HỢP VỚI 7) ---
+const count2 = counts[2] || 0;
+if (count2 > 0) {
+    const isMany2 = count2 >= 3; // Nhiều số 2 (222, 2222...)
+    const isFew2 = count2 === 1 || count2 === 2; // 1 hoặc 2 số 2
+
+    let title2 = rep(2, count2);
+    if (has7) title2 += ` & ${rep(7, counts[7])}`;
+
+    if (isFew2 && !has7) {
+        // Có 1 và 2 số 2 & KHÔNG CÓ 7
+        cards.push({
+            title: title2,
+            content: `<b>VIỆC CẦN LÀM:</b><br/>Hãy tập trung phục vụ mọi người, và thực hiện các nghĩa vụ, trách nhiệm với cộng đồng, cũng như với gia đình. Chức vụ càng lớn thì trách nhiệm càng lớn. Càng phục vụ cho người khác thì sự thăng tiến của bạn sẽ càng nhanh.<br/>Những công việc mà bạn cần tập trung đều nằm trước mắt bạn, sát bên tai bạn. Bao gồm cả những việc bạn chia sẻ những kiến thức chuyên môn mà bạn có để giúp đỡ những người đang cần (tu tập, tâm lý, kinh doanh...).<br/><b>LƯU Ý:</b> Bạn làm để phục vụ cộng đồng vì tình yêu, chứ không phải vì mục đích lợi lạc cho bản thân. Đừng để ý quá nhiều tới mục tiêu cá nhân. Hãy tập trung xử lý những việc trước mắt.`
+        });
+    } else if (isMany2 && !has7) {
+        // Có nhiều số 2 & KHÔNG CÓ 7
+        cards.push({
+            title: title2,
+            content: `<b>VIỆC CẦN LÀM:</b><br/>Hãy tập trung phục vụ mọi người, và thực hiện các nghĩa vụ, trách nhiệm với cộng đồng, cũng như với gia đình. Bạn có nhiều nghĩa vụ, trách nhiệm mà bạn cần chủ động nhận ra và tự giác thực hiện. Chức vụ càng lớn thì trách nhiệm càng lớn. Càng phục vụ cho người khác thì sự thăng tiến của bạn sẽ càng nhanh.<br/>Những công việc mà bạn cần tập trung đều nằm trước mắt bạn, sát bên tai bạn. Bao gồm cả việc chia sẻ kiến thức chuyên môn.<br/><b>LƯU Ý:</b> Bạn làm để phục vụ cộng đồng vì tình yêu, chứ không phải vì mục đích lợi lạc cho bản thân. Đừng để ý quá nhiều tới mục tiêu cá nhân. Hãy tập trung xử lý những việc trước mắt.`
+        });
+    } else if (isFew2 && has7) {
+        // Có 1 và 2 số 2 & CÓ 7
+        cards.push({
+            title: title2,
+            content: `<b>VIỆC CẦN LÀM:</b><br/>Hãy tập trung phục vụ mọi người, và thực hiện các nghĩa vụ, trách nhiệm với cộng đồng, cũng như với gia đình. Chức vụ càng lớn thì trách nhiệm càng lớn. Càng phục vụ cho người khác thì sự thăng tiến của bạn sẽ càng nhanh.<br/>Những công việc mà bạn cần tập trung đều nằm trước mắt bạn. Bao gồm cả việc chia sẻ kiến thức chuyên môn.<br/><b>LƯU Ý:</b> Bạn làm để phục vụ cộng đồng vì tình yêu, chứ không phải vì mục đích lợi lạc cho bản thân. Bạn sẽ vừa phục vụ gia đình, cộng đồng vừa thực hiện những đam mê của riêng bản thân, lúc này công việc sẽ phức tạp và bận rộn hơn nhiều.`
+        });
+    } else if (isMany2 && has7) {
+        // Có nhiều số 2 & CÓ 7
+        cards.push({
+            title: title2,
+            content: `<b>VIỆC CẦN LÀM:</b><br/>Hãy tập trung phục vụ mọi người, và thực hiện các nghĩa vụ, trách nhiệm với cộng đồng, cũng như với gia đình. Bạn có nhiều nghĩa vụ, trách nhiệm cần chủ động nhận ra. Chức vụ càng lớn thì trách nhiệm càng lớn. Càng phục vụ cho người khác thì sự thăng tiến của bạn sẽ càng nhanh.<br/>Những công việc mà bạn cần tập trung đều nằm trước mắt bạn. Bao gồm cả việc chia sẻ kiến thức chuyên môn.<br/><b>LƯU Ý:</b> Bạn làm để phục vụ cộng đồng vì tình yêu, chứ không phải vì mục đích lợi lạc cho bản thân. Bạn sẽ vừa phục vụ gia đình, cộng đồng vừa thực hiện những đam mê của riêng bản thân, lúc này công việc sẽ phức tạp và bận rộn hơn nhiều.`
+        });
+    }
+}
+
+// --- LOGIC XỬ LÝ SỐ 9 (VÀ CÁC TRƯỜNG HỢP KHÔNG CÓ 9) ---
+const count9 = counts[9] || 0;
+
+if (count9 === 1) {
+    // 1 SỐ 9
+    cards.push({
+        title: rep(9, count9),
+        content: `<b>VIỆC CẦN LÀM:</b><br/>Hãy tìm kiếm việc làm, tức một công việc nào đó mà có thể tạo ra tiền.<br/>Nếu còn trẻ, hãy làm nhiều việc khác nhau, tỷ lệ được nhận việc sẽ cao và đảm bảo tài chính. Bạn có thể bày ra cái gì đó để bán, bán tùy thích, miễn tốt cho khách hàng.<br/>Khi bán hàng, phải linh hoạt, cần đa dạng sản phẩm để khách hàng quay lại. Có như thế thì tài chính của bạn mới tốt hơn.`
+    });
+} else if (count9 >= 2) {
+    // 2 SỐ 9 TRỞ LÊN
+    cards.push({
+        title: rep(9, count9),
+        content: `<b>VIỆC CẦN LÀM:</b><br/>Bạn cần bán những sản phẩm mà tính ứng dụng của sản phẩm phải cao, phải có giá trị cao, tức sản phẩm đó hầu như ai ai cũng đều cần, đều cảm thấy mức giá đó có thể bỏ tiền ra mua được. Bạn cần có chuyên môn giỏi về việc đó.<br/>Khách hàng mua khi sản phẩm phải rất giá trị, rất phù hợp mới mua. Thế nên bạn phải lựa chọn những sản phẩm, công việc để thể hiện con người của bạn ở mức độ cao cấp hơn, chứ không bán tùy thích.`
+    });
+} else {
+    // KHÔNG CÓ SỐ 9
+    if (has3) {
+        // KHÔNG CÓ 9 & CÓ 3
+        cards.push({
+            title: `Không 9 & ${rep(3, counts[3])}`,
+            content: `Hãy chủ động ra ngoài ngoại giao để tìm kiếm khách hàng mới. Bạn có thể quảng cáo, PR, đặt lịch với KOL để họ quảng bá cho bạn.<br/>Để bán sản phẩm nào đó, bạn cần gặp gỡ và tương tác với nhiều người mới. Nếu bán sản phẩm mà bạn ngại tương tác với người lạ thì bạn sẽ khó bán được. Bạn rất cần người khác lan tỏa và giới thiệu sản phẩm cho nhiều người cùng biết.`
+        });
+    } else if (!has3 && !has8) {
+        // KHÔNG CÓ 9, KHÔNG CÓ 3 VÀ KHÔNG CÓ 8
+        cards.push({
+            title: "Không 9, 3 & 8",
+            content: `Bạn sẽ hơi khó kiếm tiền trong tháng này. Tốt nhất nên tập trung vào nghĩa vụ, trách nhiệm của bạn với người khác.<br/>Có những tháng bạn sẽ khó kiếm tiền hơn, thế nên hãy tận dụng mọi cơ hội ở những tháng khác. Hiểu điều này để bản thân trở nên nhẹ nhàng hơn, thoải mái hơn, không bị áp lực với việc kiếm tiền. Hoặc lộ trình trả nợ của mình sẽ được tính toán thật kỹ lưỡng và có độ hiệu quả cao hơn.`
+        });
+    }
+}
+
+// --- LOGIC XỬ LÝ SỐ 4 ---
+const count4 = counts[4] || 0;
+if (count4 > 0) {
+    cards.push({
+        title: rep(4, count4),
+        content: `<b>VIỆC CẦN LÀM:</b><br/>Nếu bạn cảm thấy có bệnh ở đâu đó thì hãy tập trung chữa cơn đau cho hết. Chăm sóc sức khỏe được ưu tiên hàng đầu vào tháng này.<br/>Hãy tạm gác hết công việc qua 1 bên, để ưu tiên tập trung chữa bệnh trước. Một khi sức khỏe có vấn đề thì bạn sẽ khó để tập trung làm việc gì khác một cách hiệu quả được (ví dụ: tay chân yếu, trúng gió, tiêu hóa kém, rụng tóc, mụn...).`
+    });
+}
+
+// --- LOGIC XỬ LÝ SỐ 5 ---
+const count5 = counts[5] || 0;
+if (count5 > 0) {
+    cards.push({
+        title: rep(5, count5),
+        content: `<b>VIỆC CẦN LÀM:</b><br/>Hãy ra ngoài tương tác, chia sẻ, thảo luận, đào tạo,… nhiều nhất có thể. Mục tiêu là để bạn luyện khả năng ăn nói, diễn đạt sao cho khéo léo, dễ thương và ai ai cũng hiểu được ý của bạn.<br/>Hãy luyện nói, luyện cách diễn đạt nhiều lên. Nếu không luyện thường xuyên thì cách nói chuyện của bạn vô tình có thể tạo ra sự khó hiểu, dễ gây cấn tâm cho đối phương, thậm chí là tạo ra sự cãi vã, mâu thuẫn.`
+    });
+} else {
+    // KHÔNG CÓ SỐ 5
+    if (count6 === 0) {
+        // KHÔNG CÓ 5 & KHÔNG CÓ 6 (chỉ xét không có 5 theo logic input)
+        cards.push({
+            title: "Không 5",
+            content: `Hãy im lặng nhiều hơn, bớt nói lại, chỉ nói khi thật sự cần thiết. Đừng xen vào chuyện của người khác, nếu không, bạn sẽ dễ gặp xui xẻo. Nhất là khi vừa không có số 5 mà lại có số 6, mà miệng lại nhanh hơn não thì rất dễ gây ra hiềm khích.`
+        });
+    } else {
+        // KHÔNG CÓ 5 & CÓ 6
+        cards.push({
+            title: `Không 5 & ${rep(6, count6)}`,
+            content: `Hãy im lặng nhiều hơn, bớt nói lại, chỉ nói khi thật sự cần thiết. Đừng xen vào chuyện của người khác, nếu không, bạn sẽ dễ gặp xui xẻo.<br/><b>LƯU Ý:</b> Hãy suy nghĩ thật kỹ trước khi nói, vì bạn rất dễ phạm sai lầm, thiếu cẩn ngôn, dễ gây ra hiềm khích, cấn tâm cho người khác.`
+        });
+    }
+}
+
+      
+      
+            return { name, day, month: monthStr, year: yearStr, vibe: vibes[n1 % vibes.length], cards };
         }
 
-        function renderCards(counts) {
-            const container = document.getElementById('resultContainer');
-            container.innerHTML = '';
-
-            // Helper function
-            const addCard = (category, title, content, type) => {
-                let theme = {
-                    'water': { bg: 'from-blue-900/40 to-slate-900/40', border: 'border-blue-500/50', icon: 'fa-water', label: 'Tâm Thức' },
-                    'fire': { bg: 'from-red-900/30 to-orange-900/30', border: 'border-red-500/50', icon: 'fa-fire', label: 'Hành Động' },
-                    'wood': { bg: 'from-green-900/30 to-emerald-900/30', border: 'border-green-500/50', icon: 'fa-tree', label: 'Kết Nối' },
-                    'metal': { bg: 'from-gray-800/50 to-gray-900/50', border: 'border-[#d4af37]/50', icon: 'fa-gem', label: 'Tài Chính' },
-                    'earth': { bg: 'from-amber-900/30 to-yellow-900/30', border: 'border-yellow-500/50', icon: 'fa-mountain', label: 'Thực Tế' }
-                }[type] || { bg: 'from-gray-800 to-gray-900', border: 'border-gray-500', icon: 'fa-star', label: 'Tổng Quan' };
-
-                container.innerHTML += `
-                <div class="bg-gradient-to-r ${theme.bg} border-l-4 ${theme.border} p-6 md:p-8 rounded-r-xl shadow-lg relative break-inside-avoid mb-4">
-                    <div class="absolute right-6 top-6 opacity-10 text-5xl"><i class="fas ${theme.icon}"></i></div>
-                    <div class="flex items-center gap-3 mb-3">
-                        <span class="text-[10px] font-bold px-2 py-1 rounded bg-white/5 border border-white/10 uppercase tracking-widest text-[#d4af37]">${category}</span>
-                    </div>
-                    <h3 class="text-2xl font-bold text-white mb-4 serif-font">${title}</h3>
-                    <div class="text-gray-300 leading-relaxed text-sm md:text-base font-light space-y-3 text-justify">
-                        ${content}
-                    </div>
-                </div>`;
-            };
-
-            // ================== NEW DATA LOGIC (UPDATED) ==================
-
-            // --- SỐ 1 ---
-            if ((counts[1] || 0) >= 3) { // NHIỀU SỐ 1
-                addCard("Trạng Thái", "Kết Nối Để Chuyển Hóa (Nhiều Số 1)", 
-                `<p><strong>VIỆC CẦN LÀM:</strong> Cần bước ra ngoài gặp gỡ, tìm kiếm trải nghiệm để làm, có thể là đi coi phim, đi cà phê, đi ăn, đi chơi, đi hái rau, tưới cây, chạy bộ, bơi lội, đi dạo, hoặc đi làm công việc gì đó, ít tiền hay nhiều tiền đều được, để tương tác, để thử những môn, những lĩnh vực, những trải nghiệm mới.</p>
-                 <p>Đừng ngồi yên trong nhà chỉ để coi tiktok, tivi,… Xung quanh bạn càng nhiều việc càng tốt, càng nhiều trải nghiệm mới càng tốt, sẽ càng cảm thấy dễ chịu, và bạn sẽ bớt suy tư miên man, suy nghĩ lung tung đi rất nhiều.</p>`, "water");
-            } else { // ÍT SỐ 1 (1, 11) - Bao gồm cả trường hợp 0 nếu logic cho phép, nhưng thường sẽ có ít nhất 1 số 1 từ 19xx/20xx
-                addCard("Trạng Thái", "Sự Bình Ổn (Ít Số 1)", 
-                `<p>Sự hỗn loạn từ thế giới bên ngoài sẽ không ảnh hưởng quá lớn đến nội tâm bên trong bạn. Tháng này sẽ khá yên ổn, yêu đời, nhẹ nhàng, không có nhiều thứ làm bạn bận tâm. Hãy học và làm việc bình thường như mọi khi.</p>`, "water");
-            }
-
-            // --- SỐ 6 ---
-            if ((counts[6] || 0) >= 1) {
-                let title = (counts[6] || 0) >= 2 ? "Góc Nhìn Sâu Sắc & Trưởng Thành (2 Số 6 Trở Lên)" : "Bài Học Trưởng Thành (1 Số 6)";
-                
-                let extraContent = (counts[6] || 0) >= 2 
-                    ? `<p>Tháng này sẽ có sự tác động khá mạnh mẽ tới nhận thức, tư duy của bạn.</p>` 
-                    : ``;
-
-                addCard("Trưởng Thành", title, 
-                `<p><strong>VIỆC CẦN LÀM:</strong> Đừng quá an toàn, nếu bạn quá an toàn và không chấp nhận sai lầm của bản thân, bạn sẽ bỏ lỡ đi một góc nhìn sâu sắc nào đó, bỏ qua một cơ hội nào đó để trưởng thành. Hãy cho phép bản thân được sai lầm trong tháng này.</p>
-                 ${extraContent}
-                 <p>Cần nhìn thẳng vào sai lầm của bản thân và phân tích lý do, đúng sai ở đâu, đúc kết những kinh nghiệm từ những sai lầm cũ, nhờ đó mà tốc độ trưởng thành của bạn sẽ rất nhanh.</p>
-                 <p>Sau khi ngộ ra được rồi, bạn sẽ cảm thấy rất khác, cảm thấy rất chín chắn, trưởng thành hơn, tỉnh táo hơn. Những biến cố, những sự mù quáng, ngu ngơ sẽ có giá trị lớn với bạn và với riêng bạn, những người xung quanh sẽ không thấy rõ.</p>`, "fire");
-            }
-
-            // --- SỐ 3 ---
-            const has3 = (counts[3] || 0) > 0;
-            const has8 = (counts[8] || 0) > 0;
-
-            if (has3 && !has8) {
-                addCard("Kết Nối", "Cơ Hội Gặp Quý Nhân (Có Số 3)", 
-                `<p><strong>VIỆC CẦN LÀM:</strong> Bạn cần gia tăng tương tác với xã hội, mở rộng mối quan hệ mới, bước ra vùng an toàn, kết nối hòa nhập với mọi người. Bạn sẽ có nhiều cơ hội gặp được nhiều quý nhân trong cuộc đời bạn. Quý nhân ở đây có thể là khách hàng, đối tác làm ăn, thầy/cô,…</p>`, "wood");
-            }
-
-            // --- VỪA CÓ 3 VÀ 8 ---
-            if (has3 && has8) {
-                addCard("Cân Bằng", "Cân Bằng Giữa Kết Nối & Tận Hưởng (Có 3 & 8)", 
-                `<p>Hãy dành ra 50% thời gian trong ngày để bước ra ngoài giao tiếp, mở rộng mối quan hệ mới và 50% thời gian còn lại để làm những việc mà bạn yêu thích, lúc này bạn chỉ cần lên tiếng thì hầu như tất cả mọi người sẽ hỗ trợ, giúp đỡ bạn ngay.</p>`, "wood");
-            }
-
-            // --- KHÔNG CÓ 3 VÀ KHÔNG CÓ 8 ---
-            if (!has3 && !has8) {
-                addCard("Kỷ Luật", "Sự Độc Lập & Nghiêm Túc (Không 3 & Không 8)", 
-                `<p>Đừng chiều chuộng cảm xúc của bản thân, đừng tập trung tận hưởng. Những thứ mình muốn sẽ không dễ dàng được đáp ứng. Cũng không có quá nhiều quý nhân xuất hiện trong tháng này, để chỉ điểm, hỗ trợ hoặc mang tới nguồn tài chính cho mình. Hãy độc lập, tự đứng lên và làm việc nghiêm túc, bền bỉ, tập trung.</p>`, "metal");
-            }
-
-            // --- SỐ 8 (Riêng lẻ) ---
-            if (has8 && !has3) {
-                 addCard("Phong Cách Sống", "Tận Hưởng & Yêu Thương Bản Thân (Có Số 8)", 
-                `<p><strong>VIỆC CẦN LÀM:</strong> Hãy dành thời gian để thư giãn, tận hưởng cuộc sống nhiều hơn một chút. Tận hưởng những thứ mà bạn đã tạo ra, chăm sóc, yêu thương bản thân. Nếu bạn chưa có tiền mà có rất nhiều thời gian trống thì hãy sử dụng thời gian đó hợp lý, như học tập, đọc sách, xem phim,… chẳng hạn. Nếu bạn có tiền thì đây là tháng mà bạn sẽ sử dụng số tiền đó để đầu tư cho những thứ mà mình thích. Bạn sẽ được phép làm theo những gì mà bạn muốn, mọi người sẽ không tạo quá nhiều áp lực cho bạn.</p>`, "wood");
-            }
-
-            // --- SỐ 7 ---
-            const has7 = (counts[7] || 0) > 0;
-            if (has7) {
-                addCard("Tâm Linh", "Truy Tìm Mục Tiêu & Hoài Bão (Có Số 7)", 
-                `<p><strong>VIỆC CẦN LÀM:</strong> Trong tháng này, bạn sẽ quan tâm nhiều tới mục tiêu, hoài bão và đam mê cá nhân. Bạn sẽ biết được bạn có thể làm được gì, và cần phải làm gì. Thế nên đây là lúc để bạn tự hỏi các câu hỏi như “Tôi có thể làm được gì, đam mê của tôi là gì, khả năng của tôi là gì, mục tiêu thế nào, lý tưởng ra sao?”</p>`, "earth");
-            } else {
-                addCard("Thực Tế", "Bám Sát Thực Tế (Không Số 7)", 
-                `<p>Hãy bám sát vào đời sống thực tế hiện tại để làm việc, không cần quan tâm quá nhiều tới việc bạn có thể làm được gì, hãy tập trung xử lý các vấn đề còn lại trong tháng này. Đừng tập trung quá nhiều vào các câu hỏi như "Tôi là ai?", "Tôi có thể làm được gì?", "Điểm mạnh thật sự của tôi là gì?”, “Tầm nhìn, lý tưởng của tôi là gì?".</p>`, "earth");
-            }
-
-            // --- SỐ 2 (Logic Phức Tạp) ---
-            const count2 = counts[2] || 0;
-            if (count2 > 0) {
-                let title2 = "";
-                let note2 = "";
-                
-                // Logic chung cho phần nội dung chính
-                const commonContent = `<p>Hãy tập trung phục vụ mọi người, và thực hiện các nghĩa vụ, trách nhiệm với cộng đồng, cũng như với gia đình. Ví dụ bạn đang làm mẹ thì bạn sẽ đi thực hiện nghĩa vụ của người mẹ với con hoặc trong công ty bạn có chức vụ gì đó thì bạn sẽ đi thực hiện nghĩa vụ đó, ví nghĩa vụ của một giám đốc với nhân viên. Chức vụ càng lớn thì trách nhiệm càng lớn. Càng phục vụ cho người khác thì sự thăng tiến của bạn sẽ càng nhanh.</p>
-                <p>Những công việc mà bạn cần tập trung đều nằm trước mắt bạn, sát bên tai bạn, không ở đâu xa. Bao gồm cả những việc bạn chia sẻ những kiến thức chuyên môn mà bạn có để giúp đỡ những người đang cần, ví dụ kiến thức về tu tập, con người, tâm lý, kinh doanh, làm đẹp, chứng khoán,... Đây được gọi là nghĩa vụ với cộng đồng mà bạn nên chủ động làm.</p>`;
-
-                const many2Prefix = count2 >= 3 ? `<p>Bạn có nhiều nghĩa vụ, trách nhiệm mà bạn cần chủ động nhận ra và tự giác thực hiện.</p>` : ``;
-
-                // Xác định Note dựa trên có số 7 hay không
-                if (!has7) {
-                    title2 = count2 >= 3 ? "Phục Vụ & Nghĩa Vụ (Nhiều Số 2 & Không 7)" : "Phục Vụ & Nghĩa Vụ (Ít Số 2 & Không 7)";
-                    note2 = `<p class="italic text-[#d4af37] mt-3 border-l-2 border-[#d4af37] pl-3">LƯU Ý: Bạn làm để phục vụ cộng đồng vì tình yêu, chứ không phải vì mục đích lợi lạc cho bản thân. Bạn đừng để ý quá nhiều tới mục tiêu, mong muốn cá nhân. Hãy tập trung xử lý những việc trước mắt, đôi khi đó có thể là những việc mà bạn không thích hoặc không đam mê.</p>`;
-                } else {
-                    title2 = count2 >= 3 ? "Phục Vụ & Đam Mê (Nhiều Số 2 & Có 7)" : "Phục Vụ & Đam Mê (Ít Số 2 & Có 7)";
-                    note2 = `<p class="italic text-[#d4af37] mt-3 border-l-2 border-[#d4af37] pl-3">LƯU Ý: Bạn làm để phục vụ cộng đồng vì tình yêu, chứ không phải vì mục đích lợi lạc cho bản thân. Bạn sẽ vừa phục vụ gia đình, cộng đồng vừa thực hiện những đam mê của riêng bản thân, lúc này công việc sẽ phức tạp và bận rộn hơn nhiều.</p>`;
-                }
-
-                addCard("Trách Nhiệm", title2, 
-                `<strong>VIỆC CẦN LÀM:</strong>
-                 ${many2Prefix}
-                 ${commonContent}
-                 ${note2}`, "fire");
-            }
-
-            // --- SỐ 9 ---
-            const count9 = counts[9] || 0;
-            if (count9 === 1) {
-                addCard("Tài Chính", "Tìm Kiếm Việc Làm & Tài Chính (1 Số 9)", 
-                `<p><strong>VIỆC CẦN LÀM:</strong> Hãy tìm kiếm việc làm, tức một công việc nào đó mà có thể tạo ra tiền.</p>
-                 <p>Nếu bạn còn trẻ, ít kinh nghiệm và chưa xác định được công việc phù hợp nhất với bản thân thì bạn có thể làm nhiều việc khác nhau, tỷ lệ được nhận việc của bạn sẽ cao và mỗi công việc sẽ đều mang tới nguồn tài chính cho bạn, sẽ đảm bảo cho cuộc sống hằng ngày của bạn.</p>
-                 <p>Bạn có thể bày ra một cái gì đó để bán, ví dụ bán bánh tráng hay đồ ăn thì vẫn có thể bán được. Bán có thể bán tùy thích, cái gì cũng được hết, không đòi hỏi cao về sản phẩm, miễn nó tốt cho khách hàng là được.</p>
-                 <p>Và khi bán hàng, bạn phải linh hoạt, tức không nên chỉ tập trung vào một vài sản phẩm nào đó để bán, mà cần đa dạng sản phẩm, bạn cần có có sản phẩm mới để khách hàng quay lại với bạn. Có như thế thì tài chính của bạn mới tốt hơn.</p>`, "metal");
-            } else if (count9 >= 2) {
-                addCard("Tài Chính", "Đẳng Cấp Sản Phẩm & Giá Trị (2 Số 9 Trở Lên)", 
-                `<p><strong>VIỆC CẦN LÀM:</strong> Bạn cần bán những sản phẩm mà tính ứng dụng của sản phẩm phải cao, phải có giá trị cao, tức sản phẩm đó hầu như ai ai cũng đều cần, đều cảm thấy mức giá đó có thể bỏ tiền ra mua được. Bạn cần có chuyên môn giỏi về việc đó.</p>
-                 <p>Khách hàng đã bỏ tiền ra thì họ muốn sử dụng sản phẩm sao cho tận cùng, chứ không mua chỉ để ủng hộ hoặc về để đó. Khách hàng mua khi sản phẩm phải rất giá trị, rất phù hợp mới mua. Thế nên bạn phải lựa chọn những sản phẩm, công việc để thể hiện con người của bạn ở mức độ cao cấp hơn, chứ không bán tùy thích.</p>`, "metal");
-            } else { // KHÔNG CÓ SỐ 9
-                if (has3) {
-                    addCard("Tài Chính", "Ngoại Giao Để Bán Hàng (Không 9 & Có 3)", 
-                    `<p>Hãy chủ động ra ngoài ngoại giao để tìm kiếm khách hàng mới. Bạn có thể quảng cáo, PR, đặt lịch với KOL, để họ quảng bá cho bạn.</p>
-                     <p>Để bán sản phẩm nào đó, bạn cần gặp gỡ và tương tác với nhiều người mới. Nếu bán sản phẩm mà bạn ngại tương tác với người lạ thì bạn sẽ khó bán được. Bạn rất cần người khác lan tỏa và giới thiệu sản phẩm cho nhiều người cùng biết.</p>`, "metal");
-                } else if (!has8) { // KHÔNG CÓ 9, KHÔNG CÓ 3, KHÔNG CÓ 8
-                     addCard("Tài Chính", "Giai Đoạn Trầm Lắng (Không 9, 3, 8)", 
-                    `<p>Bạn sẽ hơi khó kiềm tiền trong tháng này. Tốt nhất nên tập trung vào nghĩa vụ, trách nhiệm của bạn với người khác.</p>
-                     <p>Có những tháng bạn sẽ khó kiếm tiền hơn, có những năm cơ hội rất ít để kiếm tiền, thế nên hãy tận dụng mọi cơ hội để kiếm tiền trong những tháng có số 9 này. Kiếm thật nhiều tiền trong tháng đó, để vào những tháng mà mình không kiếm được tiền, bạn có thể yên tâm để xử lý những việc khác, vì tài chính không phải là thứ duy nhất trong cuộc đời của mỗi người.</p>
-                     <p>Sẽ có những tháng mình nên tập trung cho phát triển bản thân, hoặc chỉ đi kết giao, đi nói chuyện, hoặc chăm lo gia đình, nội trợ,… Hiểu điều này để bản thân trở nên nhẹ nhàng hơn, thoải mái hơn, không bị áp lực với việc kiếm tiền. Hoặc lộ trình trả nợ của mình sẽ được tính toán thật kỹ lưỡng và có độ hiệu quả cao hơn.</p>`, "metal");
-                }
-            }
-
-            // --- SỐ 4 ---
-            if ((counts[4] || 0) > 0) {
-                addCard("Sức Khỏe", "Chữa Lành & Chăm Sóc Sức Khỏe (Có Số 4)", 
-                `<p><strong>VIỆC CẦN LÀM:</strong> Nếu bạn cảm thấy có bệnh ở đâu đó thì hãy tập trung chữa cơn đau cho hết. Chăm sóc sức khỏe được ưu tiên hàng đầu vào tháng này.</p>
-                 <p>Hãy tạm gác hết công việc qua 1 bên, để ưu tiên tập trung chữa bệnh trước. Một khi sức khỏe có vấn đề thì bạn sẽ khó để tập trung làm việc gì khác một cách hiệu quả được.</p>
-                 <p>Ví dụ, cảm thấy tay chân yếu quá, cơ yếu, cứ hơi đói một chút là tay chân run rẩy, thì hãy hiểu rằng bạn cần luyện tập cơ, không thể để bản thân ốm yếu, hãy đi bồi dưỡng sức khỏe, luyện cơ. Nếu bạn hay bị trúng gió, ăn không tiêu, đau bụng, tiêu hóa kém,… thì hãy đi chữa trị, hoặc tóc rụng, nổi mụn, bị thâm cũng vậy.</p>`, "wood");
-            }
-
-            // --- SỐ 5 ---
-            const count5 = counts[5] || 0;
-            const count6 = counts[6] || 0;
-
-            if (count5 > 0) {
-                addCard("Giao Tiếp", "Kết Nối & Chia Sẻ (Có Số 5)", 
-                `<p><strong>VIỆC CẦN LÀM:</strong> Hãy ra ngoài tương tác, chia sẻ, thảo luận, đào tạo,… nhiều nhất có thể. Mục tiêu là để bạn luyện khả năng ăn nói, diễn đạt sao cho khéo léo, dễ thương và ai ai cũng hiểu được ý của bạn.</p>
-                 <p>Hãy luyện nói, luyện cách diễn đạt nhiều lên. Nếu không luyện thường xuyên thì cách nói chuyện của bạn vô tình có thể tạo ra sự khó hiểu, dễ gây cấn tâm cho đối phương, thậm chí là tạo ra sự cãi vã, mâu thuẫn, từ chuyện nhỏ mà hóa thành chuyện to.</p>`, "earth");
-            } else {
-                if (count6 > 0) {
-                    addCard("Ứng Xử", "Cẩn Trọng Lời Nói (Không 5 & Có 6)", 
-                    `<p>Hãy im lặng nhiều hơn, bớt nói lại, chỉ nói khi thật sự cần thiết. Đừng xen vào chuyện của người khác, nếu không, bạn sẽ dễ gặp xui xẻo.</p>
-                     <p class="text-red-400 mt-2 font-bold">LƯU Ý: Hãy suy nghĩ thật kỹ trước khi nói, vì bạn rất dễ phạm sai lầm, thiếu cẩn ngôn, dễ gây ra hiềm khích, cấn tâm cho người khác.</p>`, "earth");
-                } else {
-                    addCard("Ứng Xử", "Tĩnh Lặng (Không Có 5)", 
-                    `<p>Hãy im lặng nhiều hơn, bớt nói lại, chỉ nói khi thật sự cần thiết. Đừng xen vào chuyện của người khác, nếu không, bạn sẽ dễ gặp xui xẻo. Nhất là khi vừa không có số 5 mà lại có số 6, mà miệng lại nhanh hơn não thì rất dễ gây ra hiềm khích.</p>`, "earth");
-                }
-            }
+        function exportPDF(name) {
+            const el = document.getElementById('print-area');
+            const originalStyle = { width: el.style.width, padding: el.style.padding, boxShadow: el.style.boxShadow, margin: el.style.margin };
+            el.style.width = '210mm'; el.style.padding = '20mm'; el.style.boxShadow = 'none'; el.style.margin = '0 auto';
+            const opt = { margin: 0, filename: `Bao_Cao_${name.replace(/\s+/g, '_')}.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true, letterRendering: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+            window.html2pdf().set(opt).from(el).save().then(() => { Object.assign(el.style, originalStyle); }).catch(() => { Object.assign(el.style, originalStyle); });
         }
 
-        function downloadPDF() {
-            const element = document.getElementById('printArea');
-            const btn = document.querySelector('button[onclick="downloadPDF()"]');
-            const originalText = btn.innerHTML;
-            
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
-            btn.disabled = true;
-
-            const originalClasses = element.className;
-            element.classList.remove('glass', 'rounded-2xl');
-            element.style.backgroundColor = '#121212'; 
-            element.style.backgroundImage = 'none';
-            element.style.color = '#ffffff';
-            element.style.borderRadius = '0px';
-            
-            const opt = {
-                margin:       0,
-                filename:     `Matrix_Wisdom_Report_${new Date().getTime()}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { 
-                    scale: 2, 
-                    useCORS: true, 
-                    backgroundColor: '#121212', 
-                    scrollY: 0,
-                    windowWidth: 1000 
-                },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            html2pdf().set(opt).from(element).save()
-            .then(() => {
-                element.className = originalClasses;
-                element.style.backgroundColor = '';
-                element.style.backgroundImage = '';
-                element.style.color = '';
-                element.style.borderRadius = '';
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            })
-            .catch(err => {
-                console.error(err);
-                element.className = originalClasses;
-                element.style.backgroundColor = '';
-                element.style.borderRadius = '';
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                alert("Có lỗi khi xuất PDF. Vui lòng thử lại.");
-            });
-        }
-    
-        window.onload = init;
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<MatrixWisdomApp />);
     </script>
 </body>
 </html>

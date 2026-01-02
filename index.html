@@ -449,7 +449,7 @@
 // Thay thế toàn bộ ReportView cũ bằng đoạn này
 // ==========================================
 const ReportView = ({ data, onReset }) => {
-    // Logic tính ngày (giữ nguyên)
+    // Logic tính ngày
     let endMonth = parseInt(data.month) + 1;
     let endYear = parseInt(data.year);
     if (endMonth > 12) { endMonth = 1; endYear = endYear + 1; }
@@ -462,13 +462,13 @@ const ReportView = ({ data, onReset }) => {
             </div>
             <div id="print-area" className="A4-page text-gray-900">
                 <div className="text-center mb-12 pb-8 border-b-2 border-gray-900">
-                    <h1 className="text-4xl font-extrabold mb-4 uppercase">Bật mí huyền cơ từng tháng trong năm</h1>
+                    <h1 className="text-4xl font-extrabold mb-4 uppercase">Bật Mí Huyền Cơ Từng Tháng Trong Năm</h1>
                     <div className="text-xl font-bold uppercase mb-2">{data.name}</div>
                     <div className="text-sm font-medium text-gray-500 flex justify-center gap-4 uppercase">
-                       
+                        <span>Ngày sinh: {data.day}</span>
+                        <span>•</span>
                         <span>
-                            Dự báo tháng {data.month} <br/>
-                            bắt đầu từ ngày {data.day}/{data.month}/{data.year} — {data.day}/{endMonthStr}/{endYear}
+                            Dự báo: {data.day}/{data.month}/{data.year} — {data.day}/{endMonthStr}/{endYear}
                         </span>
                     </div>
                 </div>
@@ -479,22 +479,31 @@ const ReportView = ({ data, onReset }) => {
                         <span className="text-4xl absolute -bottom-8 -right-6 text-gray-300">”</span>
                     </div>
                 </div>
-                <div className="space-y-10"> {/* Tăng khoảng cách giữa các mục lên một chút cho thoáng */}
+                <div className="space-y-8">
                     {data.cards.map((c, i) => (
                         <div key={i} className="break-inside-avoid">
-                            {/* --- PHẦN SỬA SỐ THỨ TỰ THƯ PHÁP Ở ĐÂY --- */}
-                            <h3 className="text-lg font-bold uppercase mb-2 flex items-baseline gap-3">
-                                <span 
-                                    className="text-6xl text-gray-800 leading-none select-none" 
-                                    style={{ fontFamily: "'Great Vibes', cursive", fontWeight: '400' }}
-                                >
-                                    {i+1}
-                                </span>
-                                <span className="translate-y-[-6px]">{c.title}</span>
-                            </h3>
-                            {/* ------------------------------------------ */}
                             
-                            <div className="pl-2 text-justify leading-7 text-[15px]" dangerouslySetInnerHTML={{ __html: c.content }}/>
+                            {/* --- PHẦN SỬA Ở ĐÂY --- */}
+                       
+                           {/* --- SỬA LẠI ĐOẠN NÀY (Bỏ class 'uppercase') --- */}
+<h3 className="text-lg font-bold mb-3 flex items-baseline gap-3">
+    {/* 1. Số thứ tự trong hộp đen */}
+    <span className="bg-gray-900 text-white w-6 h-6 flex items-center justify-center rounded text-xs flex-shrink-0 translate-y-[-2px]">
+        {i+1}
+    </span>
+    
+    {/* 2. Nội dung: Hiển thị nguyên bản (Không...) thay vì IN HOA (KHÔNG...) */}
+    <span 
+        className="text-3xl text-gray-800 leading-normal" 
+        style={{ fontFamily: "'Great Vibes', cursive", fontWeight: '400' }}
+    >
+        {c.title}
+    </span>
+</h3>
+
+                            {/* ---------------------- */}
+
+                            <div className="pl-9 text-justify leading-7 text-[15px]" dangerouslySetInnerHTML={{ __html: c.content }}/>
                         </div>
                     ))}
                 </div>
@@ -502,8 +511,9 @@ const ReportView = ({ data, onReset }) => {
             </div>
         </div>
     );
-};   // ==========================================
-        // 4. LOGIC ENGINE
+};   
+
+// 4. LOGIC ENGINE
         // ==========================================
         function calculateMatrixLogic(name, day, monthStr, yearStr) {
             const raw = `${day}${monthStr}${yearStr}`;
@@ -652,7 +662,7 @@ if (count9 === 1) {
     if (has3) {
         // KHÔNG CÓ 9 & CÓ 3
         cards.push({
-            title: `Không 9 & ${rep(3, counts[3])}`,
+            title: `Không 9 & có ${rep(3, counts[3])}`,
             content: `Hãy chủ động ra ngoài ngoại giao để tìm kiếm khách hàng mới. Bạn có thể quảng cáo, PR, đặt lịch với KOL để họ quảng bá cho bạn.<br/>Để bán sản phẩm nào đó, bạn cần gặp gỡ và tương tác với nhiều người mới. Nếu bán sản phẩm mà bạn ngại tương tác với người lạ thì bạn sẽ khó bán được. Bạn rất cần người khác lan tỏa và giới thiệu sản phẩm cho nhiều người cùng biết.`
         });
     } else if (!has3 && !has8) {
@@ -680,10 +690,11 @@ if (count5 > 0) {
         title: rep(5, count5),
         content: `<b>VIỆC CẦN LÀM:</b><br/>Hãy ra ngoài tương tác, chia sẻ, thảo luận, đào tạo,… nhiều nhất có thể. Mục tiêu là để bạn luyện khả năng ăn nói, diễn đạt sao cho khéo léo, dễ thương và ai ai cũng hiểu được ý của bạn.<br/>Hãy luyện nói, luyện cách diễn đạt nhiều lên. Nếu không luyện thường xuyên thì cách nói chuyện của bạn vô tình có thể tạo ra sự khó hiểu, dễ gây cấn tâm cho đối phương, thậm chí là tạo ra sự cãi vã, mâu thuẫn.`
     });
+// ... (đoạn trên giữ nguyên)
 } else {
     // KHÔNG CÓ SỐ 5
     if (count6 === 0) {
-        // KHÔNG CÓ 5 & KHÔNG CÓ 6 (chỉ xét không có 5 theo logic input)
+        // KHÔNG CÓ 5 & KHÔNG CÓ 6
         cards.push({
             title: "Không 5",
             content: `Hãy im lặng nhiều hơn, bớt nói lại, chỉ nói khi thật sự cần thiết. Đừng xen vào chuyện của người khác, nếu không, bạn sẽ dễ gặp xui xẻo. Nhất là khi vừa không có số 5 mà lại có số 6, mà miệng lại nhanh hơn não thì rất dễ gây ra hiềm khích.`
@@ -691,12 +702,13 @@ if (count5 > 0) {
     } else {
         // KHÔNG CÓ 5 & CÓ 6
         cards.push({
-            title: `Không 5 & ${rep(6, count6)}`,
+            // CŨ: title: `Không 5 & ${rep(6, count6)}`,
+            // MỚI (Thêm chữ 'có' cho rõ ràng):
+            title: `Không 5 & có ${rep(6, count6)}`,
             content: `Hãy im lặng nhiều hơn, bớt nói lại, chỉ nói khi thật sự cần thiết. Đừng xen vào chuyện của người khác, nếu không, bạn sẽ dễ gặp xui xẻo.<br/><b>LƯU Ý:</b> Hãy suy nghĩ thật kỹ trước khi nói, vì bạn rất dễ phạm sai lầm, thiếu cẩn ngôn, dễ gây ra hiềm khích, cấn tâm cho người khác.`
         });
     }
 }
-
       
       
             return { name, day, month: monthStr, year: yearStr, vibe: vibes[n1 % vibes.length], cards };

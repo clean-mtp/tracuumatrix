@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matrix Wisdom App (Cloud)</title>
-    
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -74,6 +74,11 @@
             const [currentUser, setCurrentUser] = useState(null);
             const [view, setView] = useState('login'); 
             const [reportData, setReportData] = useState(null);
+            const [formData, setFormData] = useState({ 
+        name: '', birthDay: '', birthMonth: '', birthYear: '', 
+        targetMonth: String(new Date().getMonth()+1).padStart(2,'0'), 
+        targetYear: String(new Date().getFullYear()) 
+    });
             const [loading, setLoading] = useState(false);
             const [toast, setToast] = useState(null);
 
@@ -167,6 +172,8 @@
                                         {!reportData ? (
                                             <InputSection 
                                                 user={currentUser} 
+                                                form={formData} 
+                                                    setForm={setFormData}
                                                 onCalculate={(data) => {
                                                     setLoading(true);
                                                     setTimeout(() => { setReportData(data); setLoading(false); }, 800);
@@ -321,7 +328,7 @@
                                     </div>
                                 ))}
                             </div>
-                            <form onSubmit={addUser} className="flex gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                            <form onSubmit={addUser} className="flex flex-col md:flex-row gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
                                 <input placeholder="Username" className="flex-1 p-2 bg-white border border-gray-200 rounded text-sm outline-none" value={newUser.username} onChange={e=>setNewUser({...newUser, username:e.target.value})}/>
                                 <input placeholder="Password" className="flex-1 p-2 bg-white border border-gray-200 rounded text-sm outline-none" value={newUser.password} onChange={e=>setNewUser({...newUser, password:e.target.value})}/>
                                 <button className="bg-gray-900 text-white px-4 py-2 rounded text-sm font-bold">Thêm</button>
@@ -355,9 +362,8 @@
             );
         };
 
-        const InputSection = ({ user, onCalculate, showToast, loading }) => {
-            const [form, setForm] = useState({ name: '', birthDay: '', birthMonth: '', birthYear: '', targetMonth: String(new Date().getMonth()+1).padStart(2,'0'), targetYear: String(new Date().getFullYear()) });
-            const days = Array.from({length: 31},(_,i)=>i+1);
+      const InputSection = ({ user, onCalculate, showToast, loading, form, setForm }) => {
+             const days = Array.from({length: 31},(_,i)=>i+1);
             const months = Array.from({length: 12},(_,i)=>i+1);
 
             const submitManual = () => {
@@ -386,7 +392,7 @@
                                 <input className="w-full p-3 border border-gray-200 rounded-lg focus:border-gray-900 outline-none uppercase font-semibold" placeholder="NGUYỄN VĂN A" value={form.name} onChange={e=>setForm({...form, name:e.target.value.toUpperCase()})}/>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Ngày Tháng Năm Sinh</label>
+                                <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Ngày, Tháng, Năm Sinh mà bạn hay dùng nhất</label>
                                 <div className="flex gap-3">
                                     <select className="flex-1 p-3 border border-gray-200 rounded-lg outline-none bg-white" value={form.birthDay} onChange={e=>setForm({...form, birthDay:e.target.value})}>
                                         <option value="" disabled>Ngày</option>{days.map(d=><option key={d} value={d}>{d}</option>)}
@@ -394,7 +400,13 @@
                                     <select className="flex-1 p-3 border border-gray-200 rounded-lg outline-none bg-white" value={form.birthMonth} onChange={e=>setForm({...form, birthMonth:e.target.value})}>
                                         <option value="" disabled>Tháng</option>{months.map(m=><option key={m} value={m<10?`0${m}`:`${m}`}>{m}</option>)}
                                     </select>
-                                    <input className="flex-1 p-3 border border-gray-200 rounded-lg outline-none text-center" placeholder="Năm" value={form.birthYear} onChange={e=>setForm({...form, birthYear:e.target.value})}/>
+                        
+                                    <input 
+                                            className="w-24 p-3 border border-gray-200 rounded-lg outline-none text-center" // Đã sửa flex-1 thành w-24
+                                            placeholder="Năm" 
+                                            value={form.birthYear} 
+                                            onChange={e=>setForm({...form, birthYear:e.target.value})}
+                                        />
                                 </div>
                             </div>
                             <hr className="border-gray-100 my-4"/>
@@ -433,38 +445,64 @@
             );
         };
 
-        const ReportView = ({ data, onReset }) => (
-            <div className="flex flex-col items-center pb-20">
-                <div className="w-full max-w-[210mm] mb-6 flex justify-between items-center">
-                    <button onClick={onReset} className="text-sm font-medium text-gray-500 hover:text-gray-900 flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white"><X size={16}/> Quay lại</button>
-                </div>
-                <div id="print-area" className="A4-page text-gray-900">
-                    <div className="text-center mb-12 pb-8 border-b-2 border-gray-900">
-                        <h1 className="text-4xl font-extrabold mb-4 uppercase">Báo Cáo Năng Lượng</h1>
-                        <div className="text-xl font-bold uppercase mb-2">{data.name}</div>
-                        <div className="text-sm font-medium text-gray-500 flex justify-center gap-4 uppercase"><span>Ngày sinh: {data.day}</span><span>•</span><span>Dự báo: Tháng {data.month}/{data.year}</span></div>
-                    </div>
-                    <div className="mb-12 text-center px-10">
-                        <div className="inline-block relative">
-                            <span className="text-4xl absolute -top-4 -left-6 text-gray-300">“</span>
-                            <p className="font-medium italic text-xl leading-relaxed text-gray-700">{data.vibe}</p>
-                            <span className="text-4xl absolute -bottom-8 -right-6 text-gray-300">”</span>
-                        </div>
-                    </div>
-                    <div className="space-y-8">
-                        {data.cards.map((c, i) => (
-                            <div key={i} className="break-inside-avoid">
-                                <h3 className="text-lg font-bold uppercase mb-3 flex items-center gap-3"><span className="bg-gray-900 text-white w-6 h-6 flex items-center justify-center rounded text-xs">{i+1}</span>{c.title}</h3>
-                                <div className="pl-9 text-justify leading-7 text-[15px]" dangerouslySetInnerHTML={{ __html: c.content }}/>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="mt-16 pt-8 border-t border-gray-200 text-center text-xs text-gray-400 font-medium uppercase tracking-widest"><p>Báo cáo từ Matrix Wisdom.</p><p className="mt-1">© {new Date().getFullYear()} Heart Sun. All rights reserved.</p></div>
-                </div>
-            </div>
-        );
+  // ==========================================
+// Thay thế toàn bộ ReportView cũ bằng đoạn này
+// ==========================================
+const ReportView = ({ data, onReset }) => {
+    // Logic tính ngày (giữ nguyên)
+    let endMonth = parseInt(data.month) + 1;
+    let endYear = parseInt(data.year);
+    if (endMonth > 12) { endMonth = 1; endYear = endYear + 1; }
+    const endMonthStr = endMonth < 10 ? `0${endMonth}` : endMonth;
 
-        // ==========================================
+    return (
+        <div className="flex flex-col items-center pb-20">
+            <div className="w-full max-w-[210mm] mb-6 flex justify-between items-center">
+                <button onClick={onReset} className="text-sm font-medium text-gray-500 hover:text-gray-900 flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white"><X size={16}/> Quay lại</button>
+            </div>
+            <div id="print-area" className="A4-page text-gray-900">
+                <div className="text-center mb-12 pb-8 border-b-2 border-gray-900">
+                    <h1 className="text-4xl font-extrabold mb-4 uppercase">Bật mí huyền cơ từng tháng trong năm</h1>
+                    <div className="text-xl font-bold uppercase mb-2">{data.name}</div>
+                    <div className="text-sm font-medium text-gray-500 flex justify-center gap-4 uppercase">
+                       
+                        <span>
+                            Dự báo tháng {data.month} <br/>
+                            bắt đầu từ ngày {data.day}/{data.month}/{data.year} — {data.day}/{endMonthStr}/{endYear}
+                        </span>
+                    </div>
+                </div>
+                <div className="mb-12 text-center px-10">
+                    <div className="inline-block relative">
+                        <span className="text-4xl absolute -top-4 -left-6 text-gray-300">“</span>
+                        <p className="font-medium italic text-xl leading-relaxed text-gray-700">{data.vibe}</p>
+                        <span className="text-4xl absolute -bottom-8 -right-6 text-gray-300">”</span>
+                    </div>
+                </div>
+                <div className="space-y-10"> {/* Tăng khoảng cách giữa các mục lên một chút cho thoáng */}
+                    {data.cards.map((c, i) => (
+                        <div key={i} className="break-inside-avoid">
+                            {/* --- PHẦN SỬA SỐ THỨ TỰ THƯ PHÁP Ở ĐÂY --- */}
+                            <h3 className="text-lg font-bold uppercase mb-2 flex items-baseline gap-3">
+                                <span 
+                                    className="text-6xl text-gray-800 leading-none select-none" 
+                                    style={{ fontFamily: "'Great Vibes', cursive", fontWeight: '400' }}
+                                >
+                                    {i+1}
+                                </span>
+                                <span className="translate-y-[-6px]">{c.title}</span>
+                            </h3>
+                            {/* ------------------------------------------ */}
+                            
+                            <div className="pl-2 text-justify leading-7 text-[15px]" dangerouslySetInnerHTML={{ __html: c.content }}/>
+                        </div>
+                    ))}
+                </div>
+                <div className="mt-16 pt-8 border-t border-gray-200 text-center text-xs text-gray-400 font-medium uppercase tracking-widest"><p>Báo cáo từ Matrix Wisdom.</p><p className="mt-1">© {new Date().getFullYear()} Heart Sun. All rights reserved.</p></div>
+            </div>
+        </div>
+    );
+};   // ==========================================
         // 4. LOGIC ENGINE
         // ==========================================
         function calculateMatrixLogic(name, day, monthStr, yearStr) {
